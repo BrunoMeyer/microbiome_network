@@ -4,58 +4,33 @@ from sklearn import datasets
 
 
 import numpy as np
-from sklearn.model_selection import train_test_split
 from sklearn import datasets
 from sklearn import svm
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
 from sklearn import preprocessing
 
-from sklearn.datasets import make_moons, make_circles, make_classification
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
-from sklearn.gaussian_process import GaussianProcessClassifier
-from sklearn.gaussian_process.kernels import RBF
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from sklearn.svm import LinearSVC
 
 
-from sklearn.model_selection import StratifiedKFold
 
 import time
 
 from collections import defaultdict
 
 
-from sklearn.kernel_approximation import RBFSampler
 from sklearn.svm import SVR
 from sklearn.feature_selection import RFE
 
 
-from sklearn.cluster import KMeans
-from sklearn.cluster import AgglomerativeClustering
-from sklearn.cluster import SpectralClustering
-from sklearn.cluster import AffinityPropagation
-
-import sys
 from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.feature_selection import SelectFromModel
+# from sklearn.feature_selection import SelectFromModel
 
-from sklearn import tree
 
 
 import json
-from sklearn.linear_model import LassoLarsCV
 from sklearn.linear_model import LinearRegression
-from sklearn.feature_selection import SelectKBest, chi2
 
 
 
@@ -65,15 +40,9 @@ import multiprocessing
 import argparse
 cores = multiprocessing.cpu_count()
 
-
-
-
-
-
-
-
-
 RANDOM_STATE = 0
+
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'Transform the result from SparCC, Kendall, Spearman and Pearson (.out files) as graph into json files.')

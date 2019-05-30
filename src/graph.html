@@ -1,0 +1,627 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <!--
+            jquery.min.js 3.3.1
+            bootstrap.min.css 4.2.1
+            bootstrap.min.js 4.2.1
+            vis.min.js 4.21.0
+            vis.min.css 4.21.0
+        -->
+
+        <script src="./js/lib/jquery.min.js"></script>
+        <style href="./css/lib/vis.min.css" ref=stylesheet></style>
+        <script src="./js/lib/vis.min.js"></script>
+        
+        <link rel="stylesheet" href="./css/lib/bootstrap.min.css">
+        <script src="./js/lib/bootstrap.min.js"></script>
+        
+        <style>
+            #mynetwork {
+                width: 100%;
+                height: 80%;
+                border: 1px solid lightgray;
+            }
+            #loadingBar {
+                position:absolute;
+                top:0px;
+                left:0px;
+                width: 100%;
+                height: 100%;
+                background-color:rgba(200,200,200,0.8);
+                -webkit-transition: all 0.5s ease;
+                -moz-transition: all 0.5s ease;
+                -ms-transition: all 0.5s ease;
+                -o-transition: all 0.5s ease;
+                transition: all 0.5s ease;
+                opacity:1;
+            }
+            #wrapper {
+                position:relative;
+                width:900px;
+                height:100%;
+            }
+
+            #text {
+                position:absolute;
+                top:50px;
+                left:530px;
+                width:30px;
+                height:50px;
+                margin:auto auto auto auto;
+                font-size:22px;
+                color: #000000;
+            }
+
+
+            div.outerBorder {
+                position:relative;
+                top:400px;
+                width:600px;
+                height:88px;
+                margin:auto auto auto auto;
+                border:8px solid rgba(0,0,0,0.1);
+                background: rgb(252,252,252); /* Old browsers */
+                background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+                background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+                background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+                background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+                background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+                background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+                filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                border-radius:72px;
+                box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            }
+
+            #border {
+                position:absolute;
+                top:50px;
+                left:10px;
+                width:500px;
+                height:23px;
+                margin:auto auto auto auto;
+                box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+                border-radius:10px;
+            }
+
+            #bar {
+                position:absolute;
+                top:0px;
+                left:0px;
+                width:20px;
+                height:20px;
+                margin:auto auto auto auto;
+                border-radius:11px;
+                border:2px solid rgba(30,30,30,0.05);
+                background: rgb(0, 173, 246); /* Old browsers */
+                box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+            }
+        </style>
+    </head>
+    <body> 
+        <div class="container">
+            <div class="mt-3 form-inline row">
+                <div class="form-group col-md-4 mt-1">
+                    <input type=number placeholder="Enter the organism ID" id="searchById" class="form-control col-md-12">
+                </div>
+                <br>
+                <div class="form-group col-md-4 mt-1">
+                    <input type=number step="0.001" value=0 placeholder=" Select a value for score threshold" id="filterByNodeValue" class="form-control col-md-12">
+                </div>
+                <div class="form-group col-md-4 mt-1">
+                    <input type=number step="0.1" value=0 placeholder=" Select a value for correlation threshold" id="filterByEdgeValue" class="form-control col-md-12">
+                </div>
+                <div class="form-group col-md-4 mt-1">
+                    <button onClick="searchById();" class="form-control btn btn-primary">Select organism by ID</button>
+                </div>
+                <br>
+                <div class="form-group col-md-4 mt-1">
+                    <button onClick="filterByNodeValue();" class="form-control btn btn-primary">Filter by score</button>
+                </div>
+                <br>
+                <div class="form-group col-md-4 mt-1">
+                    <button onClick="filterByEdgeValue();" class="form-control btn btn-primary">Filter by correlation strength</button>
+                </div>
+            </div>
+
+            <!-- <div class="mt-3 form-inline row">
+                <div class="form-group col-md-4">
+                    Selecione o grafo/rede:
+                </div>
+            
+                <div class="form-group col-md-8">
+                    <select class="form-control col-md-12">
+                        <option onChangeOption="loadGraph('Bacteria','graphData_bacteria_grouped_name_coc_2.json')" selected value=5>
+                            (Bactéria) Relação de organismos identificada por coocorrência positiva de organismo
+                        </option>
+                    </select>
+                </div>
+            </div> -->
+
+
+            <div class="mt-3 form-inline row">
+                <div class="form-group col-md-4">
+                    Select graph/network:
+                </div>
+                <div class="form-group col-md-8">
+                    <select class="form-control col-md-12">
+                        <option onChangeOption="loadGraph('Relative_taxa5','graphData_all.json')" selected value=0>
+                            (All) Correlations identified by linear regression
+                        </option>
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5','graphData_all_sparcc.json')" value=1>
+                            (All) Correlations identified by SparCC and co-occurrence matrix
+                        </option> -->
+                        <option onChangeOption="loadGraph('Relative_taxa5','graphData_all_spearman.json')" value=2>
+                            (All) Correlations identified by Spearman and co-occurrence matrix
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5','graphData_all_pearson.json')" value=3>
+                            (All) Correlations identified by Pearson and co-occurrence matrix
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5','graphData_all_kendall.json')" value=3>
+                            (All) Correlations identified by Kendall and co-occurrence matrix
+                        </option>
+                        
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch','graphData_arch.json')" value=4>
+                            (Archaea) Correlations identified by linear regression
+                        </option>
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5_arch','graphData_arch_sparcc.json')" value=5>
+                            (Archaea) Correlations identified by SparCC and co-occurrence matrix
+                        </option> -->
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch','graphData_arch_spearman.json')" value=6>
+                            (Archaea) Correlations identified by Spearman and co-occurrence matrix
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch','graphData_arch_pearson.json')" value=7>
+                            (Archaea) Correlations identified by Pearson and co-occurrence matrix
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch','graphData_arch_kendall.json')" value=7>
+                            (Archaea) Correlations identified by Kendall and co-occurrence matrix
+                        </option>
+                        
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact','graphData_bact.json')" value=8>
+                            (Bacteria) Correlations identified by linear regression
+                        </option>
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5_bact','graphData_bact_sparcc.json')" value=9>
+                            (Bacteria) Correlations identified by SparCC and co-occurrence matrix
+                        </option> -->
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact','graphData_bact_spearman.json')" value=10>
+                            (Bacteria) Correlations identified by Spearman and co-occurrence matrix
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact','graphData_bact_pearson.json')" value=11>
+                            (Bacteria) Correlations identified by Pearson and co-occurrence matrix
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact','graphData_bact_kendall.json')" value=11>
+                            (Bacteria) Correlations identified by Kendall and co-occurrence matrix
+                        </option>
+                        
+
+                        <!-- Filter with 5% More abundant -->
+                        <option onChangeOption="loadGraph('Relative_taxa5_fill','graphData_all_fill.json')" value=12>
+                            (All) Correlations identified by linear regression (5% more abundant)
+                        </option>
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5_fill','graphData_all_fill_sparcc.json')" value=13>
+                            (All) Correlations identified by SparCC and co-occurrence matrix (5% more abundant)
+                        </option> -->
+                        <option onChangeOption="loadGraph('Relative_taxa5_fill','graphData_all_fill_spearman.json')" value=14>
+                            (All) Correlations identified by Spearman and co-occurrence matrix (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_fill','graphData_all_fill_pearson.json')" value=15>
+                            (All) Correlations identified by Pearson and co-occurrence matrix (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_fill','graphData_all_fill_kendall.json')" value=15>
+                            (All) Correlations identified by Kendall and co-occurrence matrix (5% more abundant)
+                        </option>
+                        
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5_arch_fill','graphData_arch_fill.json')" value=0>
+                            (Archaea) Correlations identified by linear regression (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch_fill','graphData_arch_fill_sparcc.json')" value=1>
+                            (Archaea) Correlations identified by SparCC and co-occurrence matrix (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch_fill','graphData_arch_fill_spearman.json')" value=1>
+                            (Archaea) Correlations identified by Spearman and co-occurrence matrix (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_arch_fill','graphData_arch_fill_pearson.json')" value=1>
+                            (Archaea) Correlations identified by Pearson and co-occurrence matrix (5% more abundant)
+                        </option> -->
+                        
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact_fill','graphData_bact_fill.json')" value=0>
+                            (Bacteria) Correlations identified by linear regression (5% more abundant)
+                        </option>
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5_bact_fill','graphData_bact_fill_sparcc.json')" value=1>
+                            (Bacteria) Correlations identified by SparCC and co-occurrence matrix (5% more abundant)
+                        </option> -->
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact_fill','graphData_bact_fill_spearman.json')" value=1>
+                            (Bacteria) Correlations identified by Spearman and co-occurrence matrix (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact_fill','graphData_bact_fill_pearson.json')" value=1>
+                            (Bacteria) Correlations identified by Pearson and co-occurrence matrix (5% more abundant)
+                        </option>
+                        <option onChangeOption="loadGraph('Relative_taxa5_bact_fill','graphData_bact_fill_kendall.json')" value=1>
+                            (Bacteria) Correlations identified by Kendall and co-occurrence matrix (5% more abundant)
+                        </option>
+                        
+                    </select>
+                </div>
+            </div>
+            <div class="mt-3 form-inline row">
+                    <button onClick=showEdges() class="btn btn-primary col-md-4">Show all edges</button><br>
+            </div>
+        </div>
+
+        <div id="optionsContainer"></div>
+        <br><br>
+        <div id="mynetwork"></div>
+        <div id="loadingBar">
+            <div class="outerBorder">
+                <center style="top:0px;">
+                    <h1 style="top:-500px;">Loading graph/network</h1>
+                </center>
+                <div id="text">0%</div>
+                <div id="border">
+                    <div id="bar"></div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script>
+
+    var graphData;
+    var network;
+    var nodes;
+    var edges;
+    var labels;
+    var feature_importances;
+
+    function getEdgesOfNode(nodeId) {
+        return edges.get().filter(function (edge) {
+            return edge.from === nodeId || edge.to === nodeId;
+        });
+    }
+    
+
+    function heatMapColorforValue(value){
+        // value = value*value;
+        // value = 2*(1-1/(1+value));
+        var h = (1.0 - value) * 240
+        
+        return "hsla(" + h + ", 100%, 50%)";
+        
+        // var h = (1.0 - value) * 240
+        // return "hsl(" + h + ", 100%, 50%)";
+
+    }
+
+    function heatMapColorforValueSoft(value){
+        value = Math.log2(1+value) / Math.log2(2)
+        return heatMapColorforValue(value);
+    }
+
+    var choosedNode = null;
+
+    function onChosenNode(values, id, selected, hovering) {
+        if(choosedNode == id) return;
+        // if(selected){
+        //     onChosenNodeById(id);
+        // }
+    }
+
+    function onChosenNodeById(id){
+        if(choosedNode == id) return;
+        choosedNode = id;
+        edges.map(edge => {
+            edge.hidden = true;
+        });
+        var newEdges = edges.get().map(edge => {
+            if((edge.from === id || edge.to === id) || id === -1){
+                edge.hidden = false;
+            }
+            else{
+                edge.hidden = true;
+            }
+            return edge;
+        });
+        edges.update(newEdges);
+    }
+
+    function searchById(){
+        var id = parseInt($("#searchById").val());
+        onChosenNodeById(id);
+    }
+
+    function filterByNodeValue(){
+        var thresh = parseFloat($("#filterByNodeValue").val());
+        var nodes_to_hide = nodes.get().map(node => {
+            return {id: node.id, physics: node.score >= thresh, hidden: node.score < thresh};
+        });
+        nodes.update(nodes_to_hide);
+        redrawAll();
+    }
+
+    function filterByEdgeValue(){
+        var thresh = Math.abs(parseFloat($("#filterByEdgeValue").val()));
+        var edges_to_hide = edges.get().map(edge => {
+            return {id: edge.id, 
+                    physics: Math.abs(edge.score) >= thresh,
+                    hidden: Math.abs(edge.score) < thresh};
+        });
+        edges.update(edges_to_hide);
+        
+        $('#text').html('0%');
+        $('#bar').css("width","0px");
+        $('#loadingBar').css('display','inline');
+        $('#loadingBar').css('opacity',  1);
+
+        network.stabilize();
+        network.setOptions( { physics: true } );
+
+        // redrawAll();
+    }
+
+    function onChosenNone(properties){
+        var ids = properties.nodes;
+        var clickedNodes = nodes.get(ids);
+        if(clickedNodes.length == 0){
+            // showEdges();
+        }
+        else{
+            onChosenNodeById(clickedNodes[0].id)
+        }
+    }
+    function showEdges() {
+        onChosenNodeById(-1);
+        if(choosedNode == -1) return;
+        choosedNode = -1;
+        var newEdges = edges.get().map(edge => {
+            edge.hidden = false;
+            // edges.update(edge);
+        });
+        edges.update(newEdges);
+        
+    }
+
+    function convertNodes(nodesData,edgesData){
+        nodes_scores = {};
+
+        nodesData.map(node => {
+            node.size = edgesData.reduce((prevVal,edge) =>{
+                var is_in_edge = (
+                    edge.from == node.id
+                        ||
+                    edge.to == node.id
+                );
+                return is_in_edge ? prevVal+1 : prevVal;
+            },0);
+            
+            node.value = feature_importances[node.id];
+            
+            // node.color = {
+            //     border:'purple'
+            // }
+            // node.group = 1;
+            // if(node.id < 2000){
+            //     node.group = 2;
+            // }
+
+            node.chosen = {
+                // node: onChosenNode
+                // edge: function(values, id, selected, hovering) {
+                //     values.hidden = true;
+                //     console.log(values);
+                // }
+                label: function(values, id, selected, hovering) {
+                    values.color = "red";
+                    values.mod = "bold";
+                    values.strokeWidth = "5px";
+                    values.size = 18;
+                }
+            }
+        });
+        var max = nodesData.reduce((prevVal, node) => {
+            return Math.max(prevVal, node.value);
+        },-1);
+
+        var maxNeigh = nodesData.reduce((prevVal, node) => {
+            return Math.max(prevVal, node.size);
+        },-1);
+        
+        nodesData.map(node => {
+            node.size = (node.size/maxNeigh)*20 + 5;
+        });
+
+        nodesData.map(node => {
+            var nodeBorderColor = undefined;
+            if(node.color != undefined){
+                nodeBorderColor = node.color.border;
+            }
+            
+            node.color = {
+                background: heatMapColorforValueSoft(node.value/max),
+                border: nodeBorderColor
+            };
+            // node.group = (node.value > 100)*1;
+            node.score = node.value;
+            node.value = undefined;
+            node.borderWidth = 3;
+        })
+        
+        var max_val = edgesData.reduce((prevVal, edge) => {
+            return Math.max(prevVal, edge.value);
+        },-1);
+        var min_score = edgesData.reduce((prevVal, edge) => {
+            return Math.min(Math.abs(prevVal), Math.abs(edge.score));
+        },-1);
+
+        $("#filterByEdgeValue").val(min_score);
+        edgesData.map(edge =>{
+            edge.hidden = true;
+
+            if(edge.value != undefined){
+                // console.log(heatMapColorforValue(edge.value/max_val));
+                // edge.score = edge.value/max_val;
+                edge.color = {
+                    "color":heatMapColorforValue(edge.value/max_val)
+                };
+                edge.value = undefined;
+                // edge.width = 0.0001;
+            }
+        });
+        
+        // console.log(nodesData);
+    }
+
+    
+    
+
+    function redrawAll() {
+        $('#text').html('0%');
+        $('#bar').css("width","0px");
+        $('#loadingBar').css('display','inline');
+        $('#loadingBar').css('opacity',  1);
+        choosedNode = null;
+        var container = document.getElementById('mynetwork');
+        var options = {
+            layout: {
+                randomSeed: 1,
+                improvedLayout:false,
+                hierarchical: {
+                    enabled:false,
+                    levelSeparation: 150,
+                    nodeSpacing: 100,
+                    treeSpacing: 200,
+                    blockShifting: true,
+                    edgeMinimization: true,
+                    parentCentralization: true,
+                    direction: 'UD',        // UD, DU, LR, RL
+                    sortMethod: 'hubsize'   // hubsize, directed
+                }
+            },
+            nodes: {
+                shape: 'dot',
+                scaling: {
+                    min: 10,
+                    max: 30
+                },
+                font: {
+                    size: 12,
+                    face: 'Tahoma'
+                }
+            },
+            edges: {
+                color:{inherit:true},
+                width: 1.5,
+                smooth:{ 
+                    type: "cubicBezier",
+                    roundness: 0.55
+                }
+            },
+            interaction: {
+                // hideEdgesOnDrag: true,
+                tooltipDelay: 200
+            },
+            // configure: {
+            //     filter: function (option, path) {
+            //         if (option === 'inherit') {return true;}
+            //         if (option === 'type' && path.indexOf("smooth") !== -1) {return true;}
+            //         if (option === 'roundness') {return true;}
+            //         if (option === 'hideEdgesOnDrag') {return true;}
+            //         if (option === 'hideNodesOnDrag') {return true;}
+            //         return false;
+            //     },
+            //     container: document.getElementById('optionsContainer'),
+            //     showButton: false
+            // },
+            physics : {
+                stabilization: true,
+                // solver: "barnesHut",
+                solver: "forceAtlas2Based",
+                barnesHut: {
+                    gravitationalConstant: -200,
+                    // centralGravity: 0,
+                    springLength: 1000,
+                    springConstant: 0.5,
+                    damping: 0.09,
+                    avoidOverlap: 1
+                },
+                maxVelocity: 25,
+                minVelocity: 1,
+                timestep: 0.75,
+                forceAtlas2Based:{
+                    // gravitationalConstant: -200,
+                    // centralGravity: 0,
+                    springLength: 100,
+                    // springConstant: 0.5,
+                    // damping: 0.09,
+                    avoidOverlap: 1
+                }
+            },
+        };
+        
+        // edges.on('update', function (event, properties, senderId) {
+        //     console.log('event:', event, 'properties:', properties, 'senderId:', senderId);
+        // });
+        // edges.off("*");
+
+        // Note: data is coming from ./data/WorldCup2014.js
+        var data = {nodes:nodes, edges:edges};
+        network = new vis.Network(container, data, options);
+
+
+        
+        network.on("stabilizationIterationsDone", function () {
+            network.setOptions( { physics: false } );
+            $('#text').html('100%');
+            // $('#bar').css('width', '496px');
+            $('#loadingBar').css('opacity',  0);
+            // really clean the dom element
+            setTimeout(function () {$('#loadingBar').css('display','none');}, 500);
+        });
+
+        network.on("stabilizationProgress", function(params) {
+            var maxWidth = 496;
+            var minWidth = 20;
+            var widthFactor = params.iterations/params.total;
+            var width = Math.max(minWidth,maxWidth * widthFactor);
+
+            $('#bar').css("width",width + 'px');
+            $('#text').html(Math.round(widthFactor*100) + '%');
+        });
+        
+        network.on( 'click', onChosenNone);
+    }
+    
+    function loadGraph(bdName,graphJsonName){
+        $(document).ready(function() {
+            $.getJSON("json/"+graphJsonName, function(graph_json) {
+                $.getJSON("json/feature_importances.json", function(fi_json) {
+                    $("#filterByNodeValue").val(0);
+                    feature_importances = {};
+                    fi_json[bdName+"-grouped"]["scores_rf"].map(fi => {
+                        feature_importances[fi[0]] = fi[1];
+                    });
+
+                    graphData = graph_json;
+                    var nodesData = graphData.nodes;
+
+                    // create an array with edges
+                    var edgesData = graphData.edges;
+                    
+                    convertNodes(nodesData,edgesData);
+                    nodes = new vis.DataSet(nodesData);
+                    edges = new vis.DataSet(edgesData);
+                    redrawAll();
+                });    
+            });
+        });
+    }
+
+    $('select').on('change', function (e) {
+        var optionSelected = $("option:selected", this);
+        // Probably it is not the best way to trigger select change
+        // TODO: Store the informations in multiple properties
+        eval(optionSelected.attr("onChangeOption"));
+    });
+
+    loadGraph("Relative_taxa5","graphData_all.json");
+</script>
+</html>

@@ -1,0 +1,100 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <!--
+            jquery.min.js 3.3.1
+            datatables.min.css dt-1.10.18
+            datatables.min.js dt-1.10.18
+            bootstrap.min.css 4.2.1
+            bootstrap.min.js 4.2.1
+            popper.min.js 1.14.6
+            plotly-latest.min.js v1.48.0
+        -->
+        <script src="./js/lib/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="./css/lib/datatables.min.css"/>
+
+        <script type="text/javascript" src="./js/lib/datatables.min.js"></script>
+
+
+        <link rel="stylesheet" href="./css/lib/bootstrap.min.css">
+        <script src="./js/lib/popper.min.js"></script>
+        <script src="./js/lib/bootstrap.min.js"></script>
+        <script src="./js/lib/plotly-latest.min.js"></script>
+    
+        <style>
+            /* .equal {
+                display: flex;
+                display: -webkit-flex;
+                flex-wrap: wrap;
+            }
+            @media (min-width: 768px) {
+                .row.equal {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+            } */
+            /* #table {
+                width: 20%;
+            } */
+            /* .datatable td { */
+                /* overflow: hidden; /* this is what fixes the expansion */
+                /* text-overflow: ellipsis; not supported in all browsers, but I accepted the tradeoff */
+                /* white-space: nowrap; */
+            /* }  */
+            /* .td-limit {
+                max-width: 70px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            } */
+            .bottom-column
+            {
+                float: none;
+                display: table-cell;
+                vertical-align: top;
+            }
+            a {
+               outline: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="container row mx-auto d-flex p-2 text-center">
+                
+                <div class="container row text-center">
+                    <p class="text-center col-12">
+                            Select the type of result visualization:
+                            <br><br>
+                            <b>Scores</b>: Page with relative abundance and table with each taxon and scores extracted from Random Forest.
+                            <br><br>
+                            <b>Taxon importance chart</b>: Visualization of scores with taxons grouped by different taxonomic levels
+                            <br><br>
+                            <b>Network</b>: Network/Graph with correlation analysis between taxons and its scores. Scores represents the discriminative "power" for distinguish the five groups: "UASB1", "UASB2", "CSRT1", "CSRT2" and "CSRT3"
+                    </p>
+                </div>
+
+                <div class="container row text-center">
+                    <div class="col-12 btn-group btn-group-toggle list-group">
+                        <a href="./scores.html" target=_blank>
+                            <label class="btn list-group-item list-group-item-action flex-column align-items-start">
+                                Scores
+                            </label>
+                        </a>
+                        <a href="./taxon_importance.html" target=_blank>
+                            <label class="btn list-group-item list-group-item-action flex-column align-items-start">
+                                Taxon importance chart
+                            </label>
+                        </a>
+                        <a href="./graph.html" target=_blank>
+                            <label class="btn list-group-item list-group-item-action flex-column align-items-start">
+                                Network
+                            </label>
+                        </a>
+                    </div>
+                </div>
+                
+            </div>
+        
+    </body>
+</html>

@@ -1,37 +1,15 @@
-from sklearn.linear_model import LassoCV
-from sklearn.datasets import make_regression
 from external_dataset import load_biogas
 
-from sklearn.linear_model import LassoLarsCV
-from sklearn.datasets import make_regression
+import numpy as np
+
 from sklearn.linear_model import LinearRegression
-from sklearn.linear_model import LogisticRegressionCV
-from sklearn.linear_model import LogisticRegression
-
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import KFold
-
-try:
-    import numpy as np
-except:
-    import _numpypy as np
-
-from sklearn.svm import LinearSVR
-from sklearn import linear_model
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import r2_score
 
 from itertools import combinations
 
-
-from sklearn.datasets import load_iris, load_digits, load_wine, load_breast_cancer, fetch_lfw_people
-
-import matplotlib.pyplot as plt
 from collections import defaultdict
-
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.model_selection import cross_val_score
-from sklearn.metrics import mean_squared_error, r2_score
-
-import sys
 
 import json
 
@@ -44,12 +22,7 @@ import multiprocessing
 
 from scipy import stats
 
-def plot_samples(dataX,dataY,labels):
-    plt.subplot()
-    plt.title("")
-    plt.scatter(dataX, dataY, marker='o', c=labels,
-                s=50, edgecolor='k')
-    plt.show()
+
 
 def binary_intersect_size(class1, class2):
     min1 = min(class1)
@@ -111,8 +84,6 @@ def dim_instance_separability(X,y):
         for inst in dim_instance_separability_binary(X,copy_y):
             if(copy_y[inst] == 1):
                 instances_covered = instances_covered.union({inst})
-    # if(len(set(instances_covered))>=15):
-        # plot_samples(X, X, y)
     return set(instances_covered)
 
 
@@ -157,6 +128,9 @@ if __name__ == "__main__":
     parser.add_argument('--limiar_beta', action = 'store', dest = 'LIMIAR_BETA',
                                     default = None, required = False, type=float,
                                     help = 'The limiar used to filter the network correlation edges. Represent the relative abundance necessary to consider a sample as active.')
+    parser.add_argument('--p_val_limiar', action = 'store', dest = 'p_val_limiar',
+                                    default = 0.05, required = False, type=float,
+                                    help = 'The p-value limiar used to filter the network correlation edges. Only works with "pearson", "kendall" and "spearman.')
     parser.add_argument('--workers', action = 'store', dest = 'workers',
                                     default = None, required = False, type=int,
                                     help = 'Number of workers used to parallelize processing.')
@@ -174,6 +148,7 @@ if __name__ == "__main__":
     abundance_limiar = arguments.abundance_limiar
     LIMIAR_ALPHA = arguments.LIMIAR_ALPHA
     LIMIAR_BETA = arguments.LIMIAR_BETA
+    p_val_limiar = arguments.p_val_limiar
 
     filter_by_taxa_level = None
     if not (arguments.filter_by_taxa_name is None) and not (arguments.filter_by_taxa_level is None):
@@ -304,22 +279,19 @@ if __name__ == "__main__":
                 s = -s
             t_score.append(s)
 
-        # print("\n",min(np.sum(X[:,idxs], axis=0)),"\n")
-        # return np.mean(t_score)
         return min(t_score)
 
     def score_by_scipy_stats(dims, stat_function):
+        '''
+        Returns the correlation strenght and p-value
+        '''
         idxs = [x[0] for x in dims]
         if len(idxs) != 2:
             print("Error: Total of dimension combinations must be two for Pearson correlation")
             exit()
         corr, s = stat_function(X[:,idxs[0]], X[:,idxs[1]])
-        s = s
 
-        # if corr < 0:
-        #     s = -s
-        return corr
-        # return (1-s)*corr
+        return corr, s
 
     def score_by_pearson(dims):
         return score_by_scipy_stats(dims,stats.pearsonr)
@@ -349,7 +321,8 @@ if __name__ == "__main__":
     elif score_type == "kendall":
         score_function = score_by_kendall
     
-
+    include_p_val_scores = ["pearson", "spearman", "kendall"]
+    
     def compute_score_thread(comb):
         dims = dims_cover[list(comb)]
         return score_function(dims)
@@ -368,7 +341,12 @@ if __name__ == "__main__":
     for score_comb, comb in iterator:
         dims = dims_cover[list(comb)]
         # scores.append(score_comb)
-        if(abs(score_comb) >= LIMIAR):
+        p_val = 0.0
+        if score_type in include_p_val_scores:
+            p_val = score_comb[1]
+            score_comb = score_comb[0]
+        
+        if(abs(score_comb) >= LIMIAR and p_val <= p_val_limiar):
             filtered_scores.append(score_comb)
             edge_count+=1
             for i,j in combinations(range(len(dims)),2):

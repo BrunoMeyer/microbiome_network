@@ -1,0 +1,348 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <!--
+            jquery.min.js 3.3.1
+            datatables.min.css dt-1.10.18
+            datatables.min.js dt-1.10.18
+            bootstrap.min.css 4.2.1
+            bootstrap.min.js 4.2.1
+            popper.min.js 1.14.6
+            plotly-latest.min.js v1.48.0
+        -->
+        <script src="./js/lib/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="./css/lib/datatables.min.css"/>
+
+        <script type="text/javascript" src="./js/lib/datatables.min.js"></script>
+
+
+        <link rel="stylesheet" href="./css/lib/bootstrap.min.css">
+        <script src="./js/lib/popper.min.js"></script>
+        <script src="./js/lib/bootstrap.min.js"></script>
+        <script src="./js/lib/plotly-latest.min.js"></script>
+    
+        <style>
+            /* .equal {
+                display: flex;
+                display: -webkit-flex;
+                flex-wrap: wrap;
+            }
+            @media (min-width: 768px) {
+                .row.equal {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+            } */
+            /* #table {
+                width: 20%;
+            } */
+            /* .datatable td { */
+                /* overflow: hidden; /* this is what fixes the expansion */
+                /* text-overflow: ellipsis; not supported in all browsers, but I accepted the tradeoff */
+                /* white-space: nowrap; */
+            /* }  */
+            /* .td-limit {
+                max-width: 70px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            } */
+            .bottom-column
+            {
+                float: none;
+                display: table-cell;
+                vertical-align: top;
+            }
+            /* .container {
+                margin-right: 40px;
+                margin-left: 20px;
+            } */
+            #taxa_plot{
+                width:95%;
+                margin-right: 20px;
+                margin-left: 20px;
+                margin-bottom: 20px;
+                height: 830px !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row mx-auto d-flex p-2 text-center col-12">
+                <p class="text-center col-6">
+                    Top N Scores. Show only N taxons with best scores
+                </p>
+                <div class="text-center col-6">
+                    <input type=number step=1 id="topN" onchange=create_taxa_plot();>
+                </div>
+            </div>
+
+            <div class="row mx-auto d-flex p-2 text-center col-12">
+                <p class="text-center col-6">
+                    Sample Type. This define the scores for each taxon.
+                    If "binary" was choosed, then the chart will show the scores relative discriminative capacity between "CSRT" and "UASB" for each taxon.
+                    If "grouped" was choosed, then the discriminative criteria will consider the groups: "UASB1", "UASB2", "CSRT1", "CSRT2" and "CSRT3"
+                </p>
+                <div class="text-center col-6">
+                    <select class="form-control col-md-12" id="label_type">
+                        <option onChangeOption="create_taxa_plot()" selected value='grouped'>
+                            Groups
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value='binary'>
+                            Binary
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mx-auto d-flex p-2 text-center col-12">
+                <p class="text-center col-6">
+                    Taxa level scores (Y axis). This will define the scores values,
+                    related to the choosed leve.
+                </p>
+                <div class="text-center col-6">
+                    <select class="form-control col-md-12" id="taxa_level_scores">
+                        <!-- <option onChangeOption="create_taxa_plot()" value=0>
+                            Taxa level 0
+                        </option> -->
+                        <option onChangeOption="create_taxa_plot()" value=1>
+                            Taxa level 1
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=2>
+                            Taxa level 2
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=3>
+                            Taxa level 3
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=4>
+                            Taxa level 4
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" selected value=5>
+                            Taxa level 5
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mx-auto d-flex p-2 text-center col-12">
+                <p class="text-center col-6">
+                    Taxa level grouped (X axis). Each score will be grouped by this
+                    taxonomic level (stack bars). Note that it value only make sense
+                    if you choose a level with a higher value than "Taxa level scores".
+                </p>
+                <div class="text-center col-6">
+                    <select class="form-control col-md-12" id="taxa_level_groupby">
+                        <option onChangeOption="create_taxa_plot()" value=0>
+                            Taxa level 0
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=1>
+                            Taxa level 1
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=2 selected>
+                            Taxa level 2
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=3>
+                            Taxa level 3
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=4>
+                            Taxa level 4
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value=5>
+                            Taxa level 5
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+
+        
+        <div class="col-12" id="taxa_plot"></div>
+        
+        
+    </body>
+
+    <script>
+        var colors = [
+                "brown", "burlywood", "cadetblue",
+                "chartreuse", "chocolate", "coral", "cornflowerblue",
+                "crimson", "darkblue", "darkcyan",
+                "darkgoldenrod", "darkgray", "darkgreen",
+                "darkkhaki", "darkmagenta", "darkolivegreen", "darkorange",
+                "darkorchid", "darkred", "darksalmon", "darkseagreen",
+                "darkslateblue", "darkslategrey",
+                "darkturquoise", "darkviolet", "deeppink", "deepskyblue",
+                "dimgray", "dimgrey", "dodgerblue", "firebrick",
+                "floralwhite", "forestgreen", "fuchsia", "gainsboro",
+                "ghostwhite", "gold", "goldenrod", "gray", "grey", "green",
+                "greenyellow", "honeydew", "hotpink", "indianred", "indigo",
+                "ivory", "khaki", "lavender", "lavenderblush", "lawngreen",
+                "lemonchiffon", "lightblue", "lightcoral", "lightcyan",
+                "lightgoldenrodyellow", "lightgray", "lightgrey",
+                "lightgreen", "lightpink", "lightsalmon", "lightseagreen",
+                "lightskyblue", "lightslategray", "lightslategrey",
+                "lightsteelblue", "lightyellow", "lime", "limegreen",
+                "linen", "magenta", "maroon", "mediumaquamarine",
+                "mediumblue", "mediumorchid", "mediumpurple",
+                "mediumseagreen", "mediumslateblue", "mediumspringgreen",
+                "mediumturquoise", "mediumvioletred", "midnightblue",
+                "mintcream", "mistyrose", "moccasin", "navajowhite", "navy",
+                "oldlace", "olive", "olivedrab", "orange", "orangered",
+                "orchid", "palegoldenrod", "palegreen", "paleturquoise",
+                "palevioletred", "papayawhip", "peachpuff", "peru", "pink",
+                "plum", "powderblue", "purple", "red", "rosybrown",
+                "royalblue", "saddlebrown", "salmon", "sandybrown",
+                "seagreen", "seashell", "sienna", "silver", "skyblue",
+                "slateblue", "slategray", "slategrey", "snow", "springgreen",
+                "steelblue", "tan", "teal", "thistle", "tomato", "turquoise",
+                "violet", "wheat", "white", "whitesmoke", "yellow",
+                "yellowgreen"];
+
+        let dataSet;
+        let choosenDB;
+        
+        
+        
+        var topN = 22;
+        var label_type = "grouped";
+        var taxa_level_scores = "taxa_level_scores";
+        var taxa_level_groupby = "taxa_level_groupby";
+        
+        $("#topN").val(topN);
+        $("#label_type").val(label_type);
+        // $("#taxa_level_scores").val(taxa_level_scores);
+        // $("#taxa_level_groupby").val(taxa_level_scores);
+
+        function create_taxa_plot(){
+            topN = $("#topN").val();
+            label_type = $("#label_type").val();
+            taxa_level_scores = $("#taxa_level_scores").val();
+            taxa_level_groupby = $("#taxa_level_groupby").val();
+
+            var level1 = taxa_level_scores;
+            var level2 = taxa_level_groupby;
+
+            var tlh = dataSet["_taxa_levels_hierarchy"];
+            var data = dataSet["Relative_taxa"+level1+"-"+label_type];
+            var scores = data["scores_rf"];
+            
+            var _scores = scores.map(x=>{
+                if(x.length == 2){
+                    return x[1];
+                }
+                return x[2]; 
+            });
+            function sortNumber(a, b) {
+                return a - b;
+            }
+            
+            
+
+            _scores.sort(sortNumber).reverse();
+            var threshold;
+            if(topN < _scores.length){
+                threshold = _scores[topN];
+            }
+            else{
+                threshold = _scores[_scores.length-1];
+            }
+            
+            var feature_names = data["feature_names"];
+            var traces = {};
+            var count_traces = 0;
+            x_axis = [];
+            
+            if(level2 != 0){
+                for(var x in tlh[level2]){
+                    x_axis.push(x);
+                }
+            }
+            else{
+                x_axis = ["Bacteria", "Archaea"];
+            }
+
+            var total_y = new Array(x_axis.length).fill(0);
+            for(var i in feature_names){
+                var fn = feature_names[i];
+                var h = tlh[level1][fn];
+                var group = h[level2];
+                if(scores[i].length == 2){
+                    scores[i] = [
+                        scores[i][0],
+                        fn,
+                        scores[i][1],
+                    ]
+                }
+                if(scores[i][2] == 0){
+                    continue;
+                }
+
+                if(scores[i][2] < threshold){
+                    fn = "Others";
+                    // continue;
+                }
+                
+
+                if(!(fn in traces)){
+                    traces[fn] = { y: new Array(x_axis.length).fill(null),
+                                //    width: new Array(x_axis.length).fill(0.0),
+                                   name: fn,
+                                   marker:{'color': colors[count_traces]},
+                                   type: 'bar' }
+                    count_traces+=1;
+                }
+                total_y[x_axis.indexOf(group)]+=scores[i][2];
+                traces[fn]["y"][x_axis.indexOf(group)]+= scores[i][2];
+                // traces[fn]["width"][x_axis.indexOf(group)] = 1;
+            }
+
+            new_x_axis = x_axis.filter((x,i)=>{
+                return total_y[i] > 0;
+            });
+            for(var t in traces){
+                traces[t]["x"] = new_x_axis;
+                traces[t]["y"] = traces[t]["y"].filter((x,i)=>{
+                    return total_y[i] > 0;
+                });
+            }
+            
+            var data = [];
+            for(var x in traces){
+                data.push(traces[x]);
+            }
+
+            var layout = {
+                barmode: 'stack',
+                autosize: true,
+                // width:1500,
+                // height:1100,
+                xaxis:{
+                    automargin: true
+                },
+                yaxis: {
+                    automargin: true
+                    // overlaying: 'y'
+                },
+                // hovermode: 'closest',
+                // title:'Data Labels Hover',
+            };
+
+            Plotly.newPlot('taxa_plot', data, layout, {showSendToCloud: true});
+        }
+
+        $(document).ready(function() {
+            $.getJSON("json/feature_importances.json", function(json) {
+                dataSet = json;
+                create_taxa_plot();
+            });    
+        });
+        
+        $('select').on('change', function (e) {
+            var optionSelected = $("option:selected", this);
+            // Probably it is not the best way to trigger select change
+            // TODO: Store the informations in multiple properties
+            eval(optionSelected.attr("onChangeOption"));
+        });
+
+    </script>
+</html>

@@ -1,0 +1,463 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <!--
+            jquery.min.js 3.3.1
+            datatables.min.css dt-1.10.18
+            datatables.min.js dt-1.10.18
+            bootstrap.min.css 4.2.1
+            bootstrap.min.js 4.2.1
+            popper.min.js 1.14.6
+            plotly-latest.min.js v1.48.0
+        -->
+        <script src="./js/lib/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="./css/lib/datatables.min.css"/>
+
+        <script type="text/javascript" src="./js/lib/datatables.min.js"></script>
+
+
+        <link rel="stylesheet" href="./css/lib/bootstrap.min.css">
+        <script src="./js/lib/popper.min.js"></script>
+        <script src="./js/lib/bootstrap.min.js"></script>
+        <script src="./js/lib/plotly-latest.min.js"></script>
+        <style>
+            /* .equal {
+                display: flex;
+                display: -webkit-flex;
+                flex-wrap: wrap;
+            }
+            @media (min-width: 768px) {
+                .row.equal {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+            } */
+            /* #table {
+                width: 20%;
+            } */
+            /* .datatable td { */
+                /* overflow: hidden; /* this is what fixes the expansion */
+                /* text-overflow: ellipsis; not supported in all browsers, but I accepted the tradeoff */
+                /* white-space: nowrap; */
+            /* }  */
+            /* .td-limit {
+                max-width: 70px;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow: hidden;
+            } */
+            .bottom-column
+            {
+                float: none;
+                display: table-cell;
+                vertical-align: top;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="container row mx-auto d-flex p-2 text-center">
+                
+                <div class="container row text-center">
+                    <p class="text-center col-6">
+                        Select the classification type of samples.
+                        "Binary" represent the execution of algorithms considering only two classes (CSRT and UASB).
+                        "Groups" consider the subgroups UASB1, UASB2, CSRT1, CSRT2 and CSRT3.
+                        The others types consider differents attributes identifieds in each group.
+                    </p>
+                    <p class="text-center col-6">
+                        Select data origin
+                    </p>
+                </div>
+
+                <div class="container row text-center">
+                    <div class="col-6 btn-group btn-group-toggle list-group" data-toggle="buttons">
+                        <label onClick="changeDB_class_type('binary')" class="btn list-group-item list-group-item-action flex-column align-items-start active">
+                            <input type="radio" name="class_type_db" id="option4" autocomplete="off" checked> Binary
+                        </label>
+                        <label onClick="changeDB_class_type('grouped')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option5" autocomplete="off"> Groups
+                        </label>
+                        <label onClick="changeDB_class_type('LN Metano. Kg-1 sv')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option6" autocomplete="off"> LN Metano. Kg-1 sv
+                        </label>
+                        <label onClick="changeDB_class_type('LN.biogás.kg SV-1')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option7" autocomplete="off"> LN.biogás.kg SV-1
+                        </label>
+                        <label onClick="changeDB_class_type('Sólidos Sedimentáveis')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option8" autocomplete="off"> Sólidos Sedimentáveis
+                        </label>
+                        <label onClick="changeDB_class_type('pH')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option9" autocomplete="off"> pH
+                        </label>
+                        <label onClick="changeDB_class_type('Sólidos Volatéis')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option10" autocomplete="off"> Sólidos Volatéis
+                        </label>
+                        <label onClick="changeDB_class_type('Sólidos Fixos')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option11" autocomplete="off"> Sólidos Fixos
+                        </label>
+                        <label onClick="changeDB_class_type('Sólidos Totais ')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option12" autocomplete="off"> Sólidos Totais
+                        </label>
+                        <label onClick="changeDB_class_type('Amonia')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option13" autocomplete="off"> Amônia
+                        </label>
+                        <label onClick="changeDB_class_type('Temperatura das amostras ')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option14" autocomplete="off"> Temperatura das amostras
+                        </label>
+                        <label onClick="changeDB_class_type('Condutividade')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option15" autocomplete="off"> Condutividade
+                        </label>
+                        <label onClick="changeDB_class_type('Proteína Total')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option16" autocomplete="off"> Proteína Total
+                        </label>
+                        <label onClick="changeDB_class_type('açucares redutores ')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="class_type_db" id="option17" autocomplete="off"> Açúcares redutores
+                        </label>
+                    </div>
+
+
+                    <div class="col-6 btn-group btn-group-toggle list-group" data-toggle="buttons">
+                        <!-- <label onClick="changeDB_data_type('Bacteria')" class="btn list-group-item list-group-item-action flex-column align-items-start active">
+                            <input type="radio" name="db_data_type" id="option1" autocomplete="off" checked> Bacteria
+                        </label>
+                        <label onClick="changeDB_data_type('Archea')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option2" autocomplete="off"> Archaea
+                        </label> -->
+                        <!-- <label onClick="changeDB_data_type('Bioem')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option3" autocomplete="off"> Arquivo .biom
+                        </label> -->
+                        <!-- <label onClick="changeDB_data_type('Merged')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option3" autocomplete="off"> Todos
+                        </label> -->
+                        <label onClick="changeDB_data_type('Relative_taxa0')" class="btn list-group-item list-group-item-action flex-column align-items-start active">
+                            <input type="radio" name="db_data_type" id="option4" autocomplete="off"> Relative values (spreadsheet). Taxa level = 0
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa1')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option5" autocomplete="off"> Relative values (spreadsheet). Taxa level = 1
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa2')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option6" autocomplete="off"> Relative values (spreadsheet). Taxa level = 2
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa3')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option7" autocomplete="off"> Relative values (spreadsheet). Taxa level = 3
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa4')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option8" autocomplete="off"> Relative values (spreadsheet). Taxa level = 4
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa5')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option9" autocomplete="off"> Relative values (spreadsheet). Taxa level = 5
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa5_arch')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="Relative_taxa5_arch" autocomplete="off"> Relative values (spreadsheet). Taxa level = 5 (Archaea)
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa5_bact')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="Relative_taxa5_bact" autocomplete="off"> Relative values (spreadsheet). Taxa level = 5 (Bacteria)
+                        </label>
+
+
+                        <!-- <label onClick="changeDB_data_type('Bacteria_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option10" autocomplete="off"> Bacteria (5% mais abundantes)
+                        </label>
+                        <label onClick="changeDB_data_type('Archea_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option11" autocomplete="off"> Archaea (5% mais abundantes)
+                        </label> -->
+                        <label onClick="changeDB_data_type('Relative_taxa0_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option12" autocomplete="off"> Relative values (spreadsheet). Taxa level = 0  (5% most abundant)
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa1_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option13" autocomplete="off"> Relative values (spreadsheet). Taxa level = 1  (5% most abundant) 
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa2_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option14" autocomplete="off"> Relative values (spreadsheet). Taxa level = 2 (5% most abundant)
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa3_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option15" autocomplete="off"> Relative values (spreadsheet). Taxa level = 3 (5% most abundant)
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa4_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option16" autocomplete="off"> Relative values (spreadsheet). Taxa level = 4 (5% most abundant)
+                        </label>
+                        <label onClick="changeDB_data_type('Relative_taxa5_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option17" autocomplete="off"> Relative values (spreadsheet). Taxa level = 5 (5% most abundant)
+                        </label>
+                        <!-- <label onClick="changeDB_data_type('Relative_taxa5_arch_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="Relative_taxa5_arch_fill" autocomplete="off"> Valores relativos (planilha). Taxa level = 5 (Archaea) (5% most abundant)
+                        </label> -->
+                        <label onClick="changeDB_data_type('Relative_taxa5_bact_fill')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="Relative_taxa5_bact_fill" autocomplete="off"> Relative values (spreadsheet). Taxa level = 5 (Bactéria) (5% most abundant)
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- <div class="row col-sm">
+                    <p class="text-center col-sm"> Resultados obtidos a partir da classificação dos subgrupos </p>
+                    <div class="mx-auto container btn-group btn-group-toggle">
+                        <label onClick="updateDB('Bacteria-grouped')" class="btn btn-secondary">
+                            <input type="radio" name="options" id="option1" autocomplete="off"> Bacteria (grupos)
+                        </label>
+                        <label onClick="updateDB('Archea-grouped')" class="btn btn-secondary">
+                            <input type="radio" name="options" id="option2" autocomplete="off"> Archaea (grupos)
+                        </label>
+                        
+                        <label onClick="updateDB('Bioem-grouped')" class="btn btn-secondary">
+                            <input type="radio" name="options" id="option3" autocomplete="off"> Arquivo Bioem (grupos)
+                        </label>
+                    </div>
+                </div> -->
+
+
+            </div>
+            <div class="row container">
+                <div class="row col-12">
+                    <div class="col-12" id="plot"></div>
+                </div>
+                <div class="row col-12">
+                    <table id="example" class="table display col-12"></table>
+                </div>
+            </div>
+        </div>
+        
+    </body>
+
+    <script>
+
+        let dataSet;
+        let choosenDB;
+        
+        let dataTable = $('#example').DataTable( {
+            data: [],
+            columns: [
+                { title: "ID" },
+                { title: "Name" },
+                { title: "Score" },
+                { title: "Add to X axis" },
+                { title: "Add to Y axis" },
+            ],
+            order: [[ 2, "desc" ]],
+            autoWidth: false
+        });
+        
+     
+           
+
+        $(document).ready(function() {
+            $.getJSON("json/feature_importances.json", function(json) {
+                dataSet = json;
+                updateDB();
+            });    
+        });
+        
+        function convertDataScores(data){
+            
+            var checked;
+            for(var i in data){
+                if(data[i].length == 2){
+                    data[i] = [
+                        data[i][0],
+                        choosenDB["feature_names"][i],
+                        data[i][1],
+                    ]
+                }
+                while(data[i].length > 3) data[i].pop();
+                // data[i][0] = choosenDB["feature_ids"][i];
+                // data[i][1] = choosenDB["feature_names"][i];
+                // data[i][2] = choosenDB["feature_names"][i];
+                
+                checked = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "checked='checked'" : "";
+                data[i].push("\
+                    <label onClick=addAxisX("+i+",true) class='btn btn-secondary'>\
+                        <input type='radio' name='x_axis_group' id='x_axis_group_"+i+"' autocomplete='off' "+checked+"> Adicionar ao gráfico\
+                    </label>\n"
+                );
+
+                var checked = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "checked='checked'" : "";
+                data[i].push("\
+                    <label onClick=addAxisY("+i+",true) class='btn btn-secondary'>\
+                        <input type='radio' name='y_axis_group' id='y_axis_group_"+i+"' autocomplete='off' "+checked+"> Adicionar ao gráfico\
+                    </label>\n"
+                );
+                // console.log(data[i], data[i].length);
+            }
+            return data;
+        }
+        
+        let data_type = "Relative_taxa0";
+        let class_type = "binary";
+        
+        function changeDB_data_type(name){
+            data_type = name;
+            updateDB();
+        }
+        function changeDB_class_type(name){
+            class_type = name;
+            updateDB();
+        }
+        function getTypeScore(){
+            if(class_type != "binary" && class_type != "grouped"){
+                return "scores_reg_"+class_type;
+            }
+            return "scores_rf";
+        }
+        let first_update = true;
+
+        function updateDB(){
+            var name = data_type;
+            if(class_type == "binary"){
+                name+="-binary"
+            }
+            else{
+                name+="-grouped"
+            }
+
+            choosenDB = dataSet[name];
+            
+            if(first_update){
+                var sorted = choosenDB[getTypeScore()].concat().sort((a,b) => {
+                    return b[1] - a[1];
+                });
+                addAxisX(sorted[0][0], false);
+                addAxisY(sorted[1][0], false);
+                first_update = false;
+            }
+            updateTable();
+            plot();
+        }
+        
+        
+        function updateTable(){
+            var data = convertDataScores(choosenDB[getTypeScore()]);
+            dataTable.clear();
+            dataTable.rows.add(data);
+            dataTable.draw();
+        }
+        
+        let lastAxisX;
+        let lastAxisY;
+        function addAxisX(id_dimension, update_table){
+            var filtered = choosenDB["dataX"].map(x =>{
+                return x[id_dimension];
+            });
+
+            tracesX = {
+                name: choosenDB["feature_names"][id_dimension],
+                data: filtered
+            }
+
+            plot();
+            if(update_table) updateTable();
+            lastAxisX = {db:choosenDB, id:id_dimension};
+        }
+
+        function addAxisY(id_dimension, update_table){
+            var filtered = choosenDB["dataX"].map(x =>{
+                return x[id_dimension];
+            });
+
+            tracesY = {
+                name: choosenDB["feature_names"][id_dimension],
+                data: filtered
+            }
+
+            plot();
+            if(update_table) updateTable();
+            lastAxisY = {db:choosenDB, id:id_dimension};
+        }
+        
+        let COLOR_SCALE = [[0.0, 'rgb(0,0,255)'], [1000.0, 'rgb(255,0,0)']];
+
+        function createTrace(data, color_scale=false){
+            var markerStyle = {
+                size: 12,
+                showscale: color_scale
+            };
+            
+            if(color_scale){
+                markerStyle.color = choosenDB["target_values_"+class_type];
+                markerStyle.colorscale = "Jet";
+                markerStyle.colorbar = {title:class_type};
+            }
+            
+            var trace = {
+                x: data["x"],
+                y: data["y"],
+                mode: 'markers',
+                type: 'scatter',
+                name: data["name"],
+                // text: ['A-1', 'A-2', 'A-3', 'A-4', 'A-5'],
+                marker: markerStyle,
+            };
+
+            return trace;
+        }
+        
+        let tracesX;
+        let tracesY;
+        function plot(){
+            if(tracesX==undefined || tracesY==undefined) return;
+            var data = [];
+            var filteredData = {};
+            var dataY = choosenDB.dataY;
+            var trace_class_name = [];
+            if(class_type == "grouped" || class_type == "binary"){
+                for(var i in dataY){
+                    if(! (dataY[i] in filteredData)){
+                        filteredData[dataY[i]] = {x:[],y:[], name:dataY[i]};
+                    }
+                    filteredData[dataY[i]]["x"].push(tracesX.data[i]);
+                    filteredData[dataY[i]]["y"].push(tracesY.data[i]);
+                }
+                for(var label in filteredData){
+                    data.push(createTrace(filteredData[label]));
+                    trace_class_name.push(label);
+                }
+            }
+            else{
+                data.push(
+                    createTrace(
+                        {
+                            x: tracesX.data,
+                            y: tracesY.data,
+                            name: "Amostras"
+                        },
+                        true
+                    )
+                );
+            }
+            data = data.map((x,i) => {
+                var label = trace_class_name[i];
+                x.text = dataY.map((c_name) => {
+                    return choosenDB.label_description[label];
+                });
+                return x;
+            });
+
+
+            var layout = {
+                autosize: true,
+                xaxis: {
+                    range: [ 0.75, 5.25 ],
+                    title: {
+                        text: tracesX.name
+                    },
+                    exponentformat: "power"
+                },
+                yaxis: {
+                    range: [0, 8],
+                    title: {
+                        text: tracesY.name
+                    },
+                    exponentformat: "power"
+                },
+                hovermode: 'closest'
+                // title:'Data Labels Hover'
+            };
+
+            Plotly.newPlot('plot', data, layout, {showSendToCloud: true});
+            Plotly.relayout('plot', {
+                'xaxis.autorange': true,
+                'yaxis.autorange': true
+            });
+        }
+
+    </script>
+</html>
