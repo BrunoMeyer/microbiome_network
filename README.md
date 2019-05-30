@@ -11,6 +11,7 @@ If you have it, execute the follow steps on terminal:
 
 ```bash
 git clone https://github.com/BrunoMeyer/microbiome_network.git
+cd microbiome_network
 sudo docker build -t python-microbiomenet .
 sudo docker run --rm -d -it --name python-microbiomenet -v "$(pwd)"/src:/microbnet -w "/microbnet" python-microbiomenet
 ```
@@ -27,6 +28,7 @@ The sudo is optional if you have configured your docker.
 Also, you can execute the commands manually:
 ```bash
 git clone https://github.com/BrunoMeyer/microbiome_network.git
+cd microbiome_network
 cd src/
 pip3 install -r requirements.txt
 ./create_graph.sh
