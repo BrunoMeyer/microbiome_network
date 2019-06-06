@@ -97,6 +97,23 @@
 
             <div class="row mx-auto d-flex p-2 text-center col-12">
                 <p class="text-center col-6">
+                    The dataset used to evaluate the scores of each taxon using Random Forest. 
+                    The "filtering" of some taxons can cause considerable changes in the score.
+                </p>
+                <div class="text-center col-6">
+                    <select class="form-control col-md-12" id="data_type">
+                        <option onChangeOption="create_taxa_plot()" selected value=''>
+                            All taxons
+                        </option>
+                        <option onChangeOption="create_taxa_plot()" value='_fill'>
+                            Only 5% most abundant taxons
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row mx-auto d-flex p-2 text-center col-12">
+                <p class="text-center col-6">
                     Taxa level scores (Y axis). This will define the scores values,
                     related to the choosed leve.
                 </p>
@@ -205,25 +222,29 @@
         
         var topN = 22;
         var label_type = "grouped";
+        var data_type = "";
         var taxa_level_scores = "taxa_level_scores";
         var taxa_level_groupby = "taxa_level_groupby";
         
         $("#topN").val(topN);
         $("#label_type").val(label_type);
+        $("#data_type").val(data_type);
         // $("#taxa_level_scores").val(taxa_level_scores);
         // $("#taxa_level_groupby").val(taxa_level_scores);
 
         function create_taxa_plot(){
             topN = $("#topN").val();
             label_type = $("#label_type").val();
+            data_type = $("#data_type").val();
             taxa_level_scores = $("#taxa_level_scores").val();
             taxa_level_groupby = $("#taxa_level_groupby").val();
-
+            
             var level1 = taxa_level_scores;
             var level2 = taxa_level_groupby;
 
             var tlh = dataSet["_taxa_levels_hierarchy"];
-            var data = dataSet["Relative_taxa"+level1+"-"+label_type];
+            var data = dataSet["Relative_taxa"+level1+data_type+"-"+label_type];
+            
             var scores = data["scores_rf"];
             
             var _scores = scores.map(x=>{
