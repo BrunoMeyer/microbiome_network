@@ -1,15 +1,61 @@
+"""
+MIT License
+
+Copyright (c) 2019 Bruno Henrique Meyer
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
+
+from sklearn.linear_model import LassoCV
+from sklearn.datasets import make_regression
 from external_dataset import load_biogas
 
-import numpy as np
-
+from sklearn.linear_model import LassoLarsCV
+from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
+
 from sklearn.model_selection import cross_val_score
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import r2_score
+from sklearn.model_selection import KFold
+
+try:
+    import numpy as np
+except:
+    import _numpypy as np
+
+from sklearn.svm import LinearSVR
+from sklearn import linear_model
 
 from itertools import combinations
 
+
+from sklearn.datasets import load_iris, load_digits, load_wine, load_breast_cancer, fetch_lfw_people
+
+import matplotlib.pyplot as plt
 from collections import defaultdict
+
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import cross_val_score
+from sklearn.metrics import mean_squared_error, r2_score
+
+import sys
 
 import json
 
@@ -22,8 +68,29 @@ import multiprocessing
 
 from scipy import stats
 
+"""
+Synonimous used in this code:
+feature dimension = dimension = otu = taxon : Taxonomic group. Can represent any taxonomic rank
+
+sample = class : The sample that is associated with each duplication/repetiton
+
+duplication = instance : Each instance that is relationed with a sample
+"""
 
 
+# Used for development
+# Plot points represented as a machine learning classification problem
+def plot_samples(dataX,dataY,labels):
+    plt.subplot()
+    plt.title("")
+    plt.scatter(dataX, dataY, marker='o', c=labels,
+                s=50, edgecolor='k')
+    plt.show()
+
+
+# Intersection is metric used to sort the feature dimensions (taxons) by
+# it importance to discriminate the samples
+# Actually this is not used 
 def binary_intersect_size(class1, class2):
     min1 = min(class1)
     min2 = min(class2)
@@ -35,16 +102,17 @@ def binary_intersect_size(class1, class2):
     else:
         return min1-max2
 
+
 def multiclass_intersect_size(X,y, number_classes):
     heuristic_sum = 0
     for i,j in combinations(range(number_classes),2):
         relative_dis = binary_intersect_size(X[y==i],X[y==j])
-        # relative_dis = 0 if (relative_dis > 0) else relative_dis  
-        # relative_dis = -1 if (relative_dis == 0) else relative_dis  
         heuristic_sum += relative_dis
     return heuristic_sum
 
 
+# Compute the instances that is not discriminated for a specific feature dimension
+# and sample
 def dim_instance_separability_binary(X, y):
     class1 = X[y==0]
     class2 = X[y==1]
@@ -71,8 +139,6 @@ def dim_instance_separability_binary(X, y):
         if(x > center and y[i]==dir_class) or (x < center and y[i]==esq_class):
             instances_covered.append(i)
 
-    
-    # print(X,y,min_dir,max_esq)
     return set(instances_covered)
 
 def dim_instance_separability(X,y):
@@ -157,6 +223,7 @@ if __name__ == "__main__":
     dtype = arguments.dtype
     JSON_NAME = arguments.json_name
 
+    # Load the database considering the parameters specified by arguments of this program
     db = load_biogas(data_type=dtype, label_type=label_type, label_value='name',
                      relative_taxa_level=taxa_level, abundance_limiar=abundance_limiar,
                      filter_by_taxa_level=filter_by_taxa_level)
@@ -172,6 +239,11 @@ if __name__ == "__main__":
 
     edges = []
 
+    # Creates a structure with the data of each dimension (otu) and relative abundances
+    # observed in each sample
+    # Also, compute a preliminar value (dim_intersect) that represent a
+    # preliminar discriminative power of each dimension
+    # Note: This is not necessary, but it was preserved for future works 
     dims_cover = []
     for i in range(X.shape[1]):
         dim_cover = dim_instance_separability(
@@ -189,24 +261,27 @@ if __name__ == "__main__":
 
     max_sample_separation = len(set(total))
 
-
+    # Sort by its preliminar importance
     dims_cover = sorted(dims_cover, key=lambda dim: dim[2], reverse=True)
 
 
-    
+    # This part of program consider different types of score type
+    # The score type represents a metric used to estimate the correlation coefficient
+    # for two differents feature dimensions. The most basic is spearman or pearson correlation
+
+
+    # Only used in "coc" score type
     CO_OCORRENCIE_LIMIAR = LIMIAR_BETA
     if CO_OCORRENCIE_LIMIAR is None:
         CO_OCORRENCIE_LIMIAR = 0.8
     
+    # N_COMB represents the number of features used for compute combinations
+    # When N_COMB is 2, the features will be compared pairwise with score_type
+    # The actual version only consider methods of score_type for comparison of
+    # two features dimensions. Future works can explore this parameter
+    # Note that the increase of N_COMB represent a exponentially increase of
+    # possible combinations and also the time required for execution
     N_COMB = 2
-    # LIMIAR = 1
-    # LIMIAR = 0.5
-    # LIMIAR = 0.37
-    # LIMIAR = 0.137
-    # LIMIAR = 0.99
-    # LIMIAR = 0.01
-
-    
     
     
     INT_ORGS = set()
@@ -214,11 +289,6 @@ if __name__ == "__main__":
     dims_cover = np.array(dims_cover)
     GRAPH_ORGS = defaultdict(list)
     
-    # score_type = "pearson"
-    # score_type = "reg"
-    # score_type = "coc"
-    # score_type = "dt"
-    # score_type = "cover"
 
     total_combinations = combinations(range(len(dims_cover)),N_COMB)
     if score_type == "dt":
@@ -247,6 +317,11 @@ if __name__ == "__main__":
             total/=(i+1)
         return total
 
+    TOTAL_COMB = count_combinations(len(dims_cover),N_COMB)
+
+    # Score type by decision Tree Machine learning prediction
+    # Two features have a high score if they have a high capacity of represenation
+    # for discriminate samples
     clf_dt = DecisionTreeClassifier(random_state=0)
     def score_comb_by_dt(dims):
         idxs = [x[0] for x in dims]
@@ -256,12 +331,11 @@ if __name__ == "__main__":
     def score_comb_by_cover(dims):
         sizes = np.array([len(x[1]) for x in dims])
         return sum(sizes)/max_sample_separation
-    TOTAL_COMB = count_combinations(len(dims_cover),N_COMB)
+    
 
     def score_by_coocorrency(dims):
         idxs = [x[0] for x in dims]
         ocorrencies = (X[:,idxs] >= CO_OCORRENCIE_LIMIAR)
-        # ocorrencies = np.sum(ocorrencies, axis=1) / X.shape[1]
         count_ocorrencies = np.sum(ocorrencies, axis=1) >= len(idxs)
         return np.sum(count_ocorrencies)/X.shape[0]
 
@@ -269,18 +343,27 @@ if __name__ == "__main__":
     def score_by_regression_coocorrency(dims):
         idxs = [x[0] for x in dims]
         t_score = []
+        p_values = []
         for idx in idxs:
             mask = list(set(idxs)-set([idx]))
-            reg = LinearRegression().fit(X[:,mask], X[:,idx])
-            pred = reg.predict(X[:,mask])
-            s = r2_score(X[:,idx], pred)
+            # Regression with sklearn
+            # reg = LinearRegression().fit(X[:,mask], X[:,idx])
+            # pred = reg.predict(X[:,mask])
+            # s = r2_score(X[:,idx], pred)
+            # if reg.coef_[0] < 0:
+            #     s = -s
+            # t_score.append(s)
 
-            if reg.coef_[0] < 0:
-                s = -s
-            t_score.append(s)
+            slope, intercept, r_value, p_value, std_err = stats.linregress(X[:,mask[0]],X[:,idx])
+            t_score.append(r_value)
+            p_values.append(p_value)
 
-        return min(t_score)
+        # Return the minimum value between correlation of (x,y) and (y,x)
+        # Usually, this must be the same values
+        return min(t_score), p_values[t_score.index(min(t_score))]
 
+    # There is a similar way to get correlation coefficients of kendall, spearman and pearson
+    # with scipy library. The next functions generalizes it 
     def score_by_scipy_stats(dims, stat_function):
         '''
         Returns the correlation strenght and p-value
@@ -321,8 +404,11 @@ if __name__ == "__main__":
     elif score_type == "kendall":
         score_function = score_by_kendall
     
-    include_p_val_scores = ["pearson", "spearman", "kendall"]
+    # This scores types will consider the p-value limiar argument
+    include_p_val_scores = ["pearson", "spearman", "kendall", "reg"]
     
+
+    # Parallel processing of score types
     def compute_score_thread(comb):
         dims = dims_cover[list(comb)]
         return score_function(dims)
@@ -340,27 +426,33 @@ if __name__ == "__main__":
     filtered_scores = []
     for score_comb, comb in iterator:
         dims = dims_cover[list(comb)]
-        # scores.append(score_comb)
+        
+        # By default ignore the p-value
         p_val = 0.0
+        # If necessary, use the p-value limiar
         if score_type in include_p_val_scores:
             p_val = score_comb[1]
             score_comb = score_comb[0]
         
+        # If p-value is accepted and the correlation is strong enough (positive or negative)
         if(abs(score_comb) >= LIMIAR and p_val <= p_val_limiar):
+            # Add the edge to graph linking the features
             filtered_scores.append(score_comb)
             edge_count+=1
             for i,j in combinations(range(len(dims)),2):
+                # Add two bidirectional edge
                 GRAPH_ORGS[dims[i][0]].append((dims[j][0],score_comb))
                 GRAPH_ORGS[dims[j][0]].append((dims[i][0],score_comb))
-                # GRAPH_ORGS[dims[i][0]] = GRAPH_ORGS[dims[i][0]].union({dims[j][0]})
-                # GRAPH_ORGS[dims[j][0]] = GRAPH_ORGS[dims[j][0]].union({dims[i][0]})
                 
-            
+    # Note: The graph generated will only consider nodes that have at least one edge
+
     print("Total edges added:",edge_count)
     # print("TOP 5 scores:",np.array(sorted(scores))[-5:])
 
-    # number_classes
 
+    # Compute the minimum distance from a instance of a specifc class c to each
+    # other instance (rather than the class c),and returns the minimum distance
+    # found
     def intra_extra_class_metric_class(dim_values, labels, c):
         # mean_class = np.mean(dim_values[labels[labels==c]])
         min_dis = max(dim_values) - min(dim_values)
@@ -395,8 +487,8 @@ if __name__ == "__main__":
 
         return np.mean(distances)
 
-    LIMIAR_SET_GROUP = 0.0
-    def get_group_class_from_dim(dim_values, labels):
+    # Compute the most discriminative class (sample) of specific feature dimension
+    def get_group_class_from_dim(dim_values, labels, LIMIAR_SET_GROUP = 0.0):
         # scores = [intra_extra_class_metric_class(dim_values,labels,i) for i in range(number_classes)]
         scores = [class_mean_distance(dim_values,labels,i) for i in range(number_classes)]
         if(max(scores) == 0):
@@ -404,11 +496,12 @@ if __name__ == "__main__":
         scores = np.array([x/max(scores) for x in scores])
         
         if(max(scores) >= LIMIAR_SET_GROUP):
-            # print(list(zip(dim_values,labels)),scores)
-            # print(scores,scores.index(max(scores)))
             return np.where(scores == scores.max())[0][-1]
         return -1
 
+
+    # TODO : Implement generic and deterministic color attribuction
+    # Assign a color for each sample
     def class_id_2_color(class_id):
         if(class_id == -1):
             return "rgba(0,0,0,0.1)"
@@ -426,7 +519,8 @@ if __name__ == "__main__":
             return "rgba(148, 103, 189)" # "purple"
         
 
-
+    # Create the graph/network as a json file and save it
+    # The file can be interpreted by graph.html file
     labels = {i:db.feature_names[i] for i in GRAPH_ORGS.keys()}
 
     graphData = {"nodes":[], "edges":[]}

@@ -20,6 +20,7 @@
         <script src="./js/lib/popper.min.js"></script>
         <script src="./js/lib/bootstrap.min.js"></script>
         <script src="./js/lib/plotly-latest.min.js"></script>
+    
         <style>
             /* .equal {
                 display: flex;
@@ -79,40 +80,40 @@
                             <input type="radio" name="class_type_db" id="option5" autocomplete="off"> Groups
                         </label>
                         <label onClick="changeDB_class_type('LN Metano. Kg-1 sv')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option6" autocomplete="off"> LN Metano. Kg-1 sv
+                            <input type="radio" name="class_type_db" id="option6" autocomplete="off"> LN. Methane production Kg-1 sv
                         </label>
                         <label onClick="changeDB_class_type('LN.biogás.kg SV-1')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option7" autocomplete="off"> LN.biogás.kg SV-1
+                            <input type="radio" name="class_type_db" id="option7" autocomplete="off"> LN.Biogas.kg SV-1
                         </label>
                         <label onClick="changeDB_class_type('Sólidos Sedimentáveis')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option8" autocomplete="off"> Sólidos Sedimentáveis
+                            <input type="radio" name="class_type_db" id="option8" autocomplete="off"> Sedimentary Solids
                         </label>
                         <label onClick="changeDB_class_type('pH')" class="btn list-group-item list-group-item-action flex-column align-items-start">
                             <input type="radio" name="class_type_db" id="option9" autocomplete="off"> pH
                         </label>
                         <label onClick="changeDB_class_type('Sólidos Volatéis')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option10" autocomplete="off"> Sólidos Volatéis
+                            <input type="radio" name="class_type_db" id="option10" autocomplete="off"> Volatile Solids
                         </label>
                         <label onClick="changeDB_class_type('Sólidos Fixos')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option11" autocomplete="off"> Sólidos Fixos
+                            <input type="radio" name="class_type_db" id="option11" autocomplete="off"> Fixed Solids
                         </label>
                         <label onClick="changeDB_class_type('Sólidos Totais ')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option12" autocomplete="off"> Sólidos Totais
+                            <input type="radio" name="class_type_db" id="option12" autocomplete="off"> Total Solids
                         </label>
                         <label onClick="changeDB_class_type('Amonia')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option13" autocomplete="off"> Amônia
+                            <input type="radio" name="class_type_db" id="option13" autocomplete="off"> Ammonia
                         </label>
                         <label onClick="changeDB_class_type('Temperatura das amostras ')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option14" autocomplete="off"> Temperatura das amostras
+                            <input type="radio" name="class_type_db" id="option14" autocomplete="off"> Samples Temperature
                         </label>
                         <label onClick="changeDB_class_type('Condutividade')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option15" autocomplete="off"> Condutividade
+                            <input type="radio" name="class_type_db" id="option15" autocomplete="off"> Conductivity
                         </label>
                         <label onClick="changeDB_class_type('Proteína Total')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option16" autocomplete="off"> Proteína Total
+                            <input type="radio" name="class_type_db" id="option16" autocomplete="off"> Total Protein
                         </label>
                         <label onClick="changeDB_class_type('açucares redutores ')" class="btn list-group-item list-group-item-action flex-column align-items-start">
-                            <input type="radio" name="class_type_db" id="option17" autocomplete="off"> Açúcares redutores
+                            <input type="radio" name="class_type_db" id="option17" autocomplete="off"> Reducing sugars
                         </label>
                     </div>
 
@@ -230,6 +231,7 @@
                 { title: "ID" },
                 { title: "Name" },
                 { title: "Score" },
+                { title: "Discriminated Sample" },
                 { title: "Add to X axis" },
                 { title: "Add to Y axis" },
             ],
@@ -256,24 +258,27 @@
                         data[i][0],
                         choosenDB["feature_names"][i],
                         data[i][1],
+                        choosenDB["discriminated_class"][i],
                     ]
                 }
-                while(data[i].length > 3) data[i].pop();
+                while(data[i].length > 4) data[i].pop();
                 // data[i][0] = choosenDB["feature_ids"][i];
                 // data[i][1] = choosenDB["feature_names"][i];
                 // data[i][2] = choosenDB["feature_names"][i];
                 
-                checked = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "checked='checked'" : "";
+                checked = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "btn-secundary" : "btn-primary";
+                var text = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "" : "Adicionar ao gráfico";
                 data[i].push("\
-                    <label onClick=addAxisX("+i+",true) class='btn btn-secondary'>\
-                        <input type='radio' name='x_axis_group' id='x_axis_group_"+i+"' autocomplete='off' "+checked+"> Adicionar ao gráfico\
+                    <label onClick=addAxisX("+i+",true) class='btn "+checked+"'>\
+                        "+text+"\
                     </label>\n"
                 );
 
-                var checked = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "checked='checked'" : "";
+                var checked = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "btn-secundary" : "btn-primary";
+                text = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "" : "Adicionar ao gráfico";
                 data[i].push("\
-                    <label onClick=addAxisY("+i+",true) class='btn btn-secondary'>\
-                        <input type='radio' name='y_axis_group' id='y_axis_group_"+i+"' autocomplete='off' "+checked+"> Adicionar ao gráfico\
+                    <label onClick=addAxisY("+i+",true) class='btn "+checked+"'>\
+                        "+text+"\
                     </label>\n"
                 );
                 // console.log(data[i], data[i].length);
@@ -293,9 +298,9 @@
             updateDB();
         }
         function getTypeScore(){
-            if(class_type != "binary" && class_type != "grouped"){
-                return "scores_reg_"+class_type;
-            }
+            // if(class_type != "binary" && class_type != "grouped"){
+            //     return "scores_reg_"+class_type;
+            // }
             return "scores_rf";
         }
         let first_update = true;
@@ -319,7 +324,7 @@
                 addAxisY(sorted[1][0], false);
                 first_update = false;
             }
-            updateTable();
+            if(class_type=="binary" || class_type=="grouped") updateTable();
             plot();
         }
         
@@ -344,8 +349,8 @@
             }
 
             plot();
-            if(update_table) updateTable();
             lastAxisX = {db:choosenDB, id:id_dimension};
+            if(update_table) updateTable();
         }
 
         function addAxisY(id_dimension, update_table){
@@ -359,8 +364,8 @@
             }
 
             plot();
-            if(update_table) updateTable();
             lastAxisY = {db:choosenDB, id:id_dimension};
+            if(update_table) updateTable();
         }
         
         let COLOR_SCALE = [[0.0, 'rgb(0,0,255)'], [1000.0, 'rgb(255,0,0)']];

@@ -17,11 +17,27 @@
         <script src="./js/lib/bootstrap.min.js"></script>
         
         <style>
+            .somesection {margin-top:50px!important;}
+            #networks_canvas{
+                width: 100%;
+                height: 100%;
+            }
             #mynetwork {
                 width: 100%;
-                height: 80%;
+                height: 90%;
                 border: 1px solid lightgray;
+                /* position:relative; */
             }
+            #mynetwork_legend {
+                width: 100%;
+                height: 60px;
+                /* top:0;
+                right:0; */
+                /* float:right; */
+                /* position:relative; */
+                /* border: 1px solid gray; */
+            }
+            
             #loadingBar {
                 position:absolute;
                 top:0px;
@@ -250,7 +266,10 @@
 
         <div id="optionsContainer"></div>
         <br><br>
-        <div id="mynetwork"></div>
+        <!-- <div id="networks_canvas" class=""> -->
+            <div id="mynetwork_legend" class=""></div>
+            <div id="mynetwork" class=""></div>
+        <!-- </div> -->
         <div id="loadingBar">
             <div class="outerBorder">
                 <center style="top:0px;">
@@ -342,7 +361,8 @@
         var thresh = Math.abs(parseFloat($("#filterByEdgeValue").val()));
         var edges_to_hide = edges.get().map(edge => {
             return {id: edge.id, 
-                    physics: Math.abs(edge.score) >= thresh,
+                    physics: edge.score >= thresh,
+                    // physics: Math.abs(edge.score) >= thresh,
                     hidden: Math.abs(edge.score) < thresh};
         });
         edges.update(edges_to_hide);
@@ -442,7 +462,8 @@
             // node.group = (node.value > 100)*1;
             node.score = node.value;
             node.value = undefined;
-            node.borderWidth = 3;
+            node.borderWidth = 6;
+            node.label = "<i>"+node.label+"</i>";
         })
         
         var max_val = edgesData.reduce((prevVal, edge) => {
@@ -455,6 +476,12 @@
         $("#filterByEdgeValue").val(min_score);
         edgesData.map(edge =>{
             edge.hidden = true;
+            // edge.length = 1.0;
+            if(edge.score < 0){
+                // edge.length = 10.0;
+                edge.physics = false;
+            }
+
 
             if(edge.value != undefined){
                 // console.log(heatMapColorforValue(edge.value/max_val));
@@ -503,8 +530,9 @@
                     max: 30
                 },
                 font: {
-                    size: 12,
-                    face: 'Tahoma'
+                    multi: 'html',
+                    ital:"11px arial black",
+                    background: 'rgba(255,255,255,0.75)',
                 }
             },
             edges: {
@@ -585,6 +613,8 @@
 
             $('#bar').css("width",width + 'px');
             $('#text').html(Math.round(widthFactor*100) + '%');
+            // draw();
+
         });
         
         network.on( 'click', onChosenNone);
@@ -621,7 +651,111 @@
         // TODO: Store the informations in multiple properties
         eval(optionSelected.attr("onChangeOption"));
     });
+    
 
+    // loadGraph("Relative_taxa5","graphData_arch_spearman.json");
     loadGraph("Relative_taxa5","graphData_all.json");
+
+
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    var LENGTH_MAIN = 350,
+        LENGTH_SERVER = 150,
+        LENGTH_SUB = 50,
+        WIDTH_SCALE = 2,
+        GREEN = 'green',
+        RED = '#C5000B',
+        ORANGE = 'orange',
+    //GRAY = '#666666',
+        GRAY = 'gray',
+        BLACK = '#2B1B17';
+
+    // Called when the Visualization API is loaded.
+    function draw() {
+      // Create a data table with nodes.
+      nodes = [];
+
+      // Create a data table with links.
+      edges = [];
+
+
+      // legend
+      var mynetwork = document.getElementById('mynetwork_legend');
+      var x = - mynetwork.clientWidth / 2 +40;
+      var y = - mynetwork.clientHeight / 2 +20;
+      var step = 80;
+      nodes.push({id: 1000, x: x, y: y, label: 'UASB1', group: 'UASB1', value: 1, fixed: true, physics:false});
+      nodes.push({id: 1001, x: x+ step    , y: y, label: 'UASB2', group: 'UASB2', value: 1, fixed: true,  physics:false});
+      nodes.push({id: 1002, x: x+ 2 * step, y: y, label: 'CSRT1', group: 'CSRT1', value: 1, fixed: true,  physics:false});
+      nodes.push({id: 1003, x: x+ 3 * step, y: y, label: 'CSRT2', group: 'CSRT2', value: 1, fixed: true,  physics:false});
+      nodes.push({id: 1004, x: x+ 4 * step, y: y, label: 'CSRT3', group: 'CSRT3', value: 1, fixed: true,  physics:false});
+
+      // create a network
+      var container = document.getElementById('mynetwork_legend');
+      var data = {
+        nodes: nodes,
+        edges: edges
+      };
+      var options = {
+        nodes: {
+            scaling: {
+                min: 15,
+                max: 15,
+            },
+            borderWidth:6,
+            shape: 'dot',
+            font: "11px arial black"
+        },
+        edges: {
+          color: GRAY,
+          smooth: false
+        },
+        physics:{
+          barnesHut:{gravitationalConstant:-30000},
+          stabilization: {iterations:2500}
+        },
+        groups: {
+            'UASB1': {
+                color: {
+                    background:"white",
+                    border:"rgba(31, 119, 180, 0.8)"
+                }
+            },
+            'UASB2': {
+                color: {
+                    background:"white",
+                    border:"rgba(214, 39, 40, 0.8)"
+                }
+            },
+            'CSRT1': {
+                color: {
+                    background:"white",
+                    border:"rgba(255, 127, 14)"
+                }
+            },
+            'CSRT2': {
+                color: {
+                    background:"white",
+                    border:"rgba(44, 160, 44)"
+                }
+            },
+            'CSRT3': {
+                color: {
+                    background:"white",
+                    border:"rgba(148, 103, 189)"
+                }
+            },
+        },
+        interaction: {
+            zoomView:false,
+        },
+      };
+      network = new vis.Network(container, data, options);
+      network.disableEditMode();
+    }
+    draw();
+    
 </script>
 </html>

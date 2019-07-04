@@ -1,6 +1,5 @@
 <html>
     <head>
-        <meta charset="UTF-8">
         <!--
             jquery.min.js 3.3.1
             datatables.min.css dt-1.10.18
@@ -68,12 +67,21 @@
     </head>
     <body>
         <div class="container">
-            <div class="row mx-auto d-flex p-2 text-center col-12">
-                <p class="text-center col-6">
+            <div class="row mx-auto d-flex p-2 text-left col-12">
+                <p class="text-left col-6">
                     Top N Scores. Show only N taxons with best scores
                 </p>
-                <div class="text-center col-6">
+                <div class="text-left col-6 float-left">
                     <input type=number step=1 id="topN" onchange=create_taxa_plot();>
+                </div>
+            </div>
+            
+            <div class="row mx-auto d-flex p-2 text-left col-12">
+                <p class="text-left col-6">
+                    Show Others. The taxons that are not in Top N Score will be resumed by one generic group.
+                </p>
+                <div class="text-left col-6 float-left">
+                    <input type=checkbox id="showOthers" onchange=create_taxa_plot();>
                 </div>
             </div>
 
@@ -221,12 +229,14 @@
         
         
         var topN = 22;
+        var showOthers = false;
         var label_type = "grouped";
         var data_type = "";
         var taxa_level_scores = "taxa_level_scores";
         var taxa_level_groupby = "taxa_level_groupby";
         
         $("#topN").val(topN);
+        $("#showOthers").prop('checked', showOthers);
         $("#label_type").val(label_type);
         $("#data_type").val(data_type);
         // $("#taxa_level_scores").val(taxa_level_scores);
@@ -234,17 +244,16 @@
 
         function create_taxa_plot(){
             topN = $("#topN").val();
+            showOthers = $("#showOthers").prop('checked');
             label_type = $("#label_type").val();
             data_type = $("#data_type").val();
             taxa_level_scores = $("#taxa_level_scores").val();
             taxa_level_groupby = $("#taxa_level_groupby").val();
-            
             var level1 = taxa_level_scores;
             var level2 = taxa_level_groupby;
 
             var tlh = dataSet["_taxa_levels_hierarchy"];
             var data = dataSet["Relative_taxa"+level1+data_type+"-"+label_type];
-            
             var scores = data["scores_rf"];
             
             var _scores = scores.map(x=>{
@@ -262,7 +271,7 @@
             _scores.sort(sortNumber).reverse();
             var threshold;
             if(topN < _scores.length){
-                threshold = _scores[topN];
+                threshold = _scores[topN-1];
             }
             else{
                 threshold = _scores[_scores.length-1];
@@ -300,7 +309,7 @@
 
                 if(scores[i][2] < threshold){
                     fn = "Others";
-                    // continue;
+                    if(!showOthers) continue;
                 }
                 
 
@@ -320,11 +329,17 @@
             new_x_axis = x_axis.filter((x,i)=>{
                 return total_y[i] > 0;
             });
+            new_x_axis = new_x_axis.map(x => {
+                return "<i>"+x+"</i>";
+            });
+
             for(var t in traces){
                 traces[t]["x"] = new_x_axis;
                 traces[t]["y"] = traces[t]["y"].filter((x,i)=>{
                     return total_y[i] > 0;
                 });
+
+                traces[t]["name"] = "<i>"+traces[t]["name"]+"</i>";
             }
             
             var data = [];
@@ -333,15 +348,36 @@
             }
 
             var layout = {
+                font: {
+                    family: 'Arial',
+                    // color: '#7f7f7f',
+                    // size: 11,
+                },
                 barmode: 'stack',
                 autosize: true,
                 // width:1500,
                 // height:1100,
                 xaxis:{
-                    automargin: true
+                    automargin: true,
+                    title: {
+                        text: '',
+                        font: {
+                            family: 'Arial',
+                            // size: 11,
+                            // color: '#7f7f7f'
+                        }
+                    },
                 },
                 yaxis: {
-                    automargin: true
+                    automargin: true,
+                    title: {
+                        text: 'Gini Importance',
+                        font: {
+                            family: 'Arial',
+                            // size: 11,
+                            // color: '#7f7f7f'
+                        }
+                    },
                     // overlaying: 'y'
                 },
                 // hovermode: 'closest',
