@@ -620,28 +620,89 @@
         network.on( 'click', onChosenNone);
     }
     
+    // Only firefox allow CORS when the request is a local file
+    // Then, a js file was created with all json content
+    var database_service = null;
+    function loadScript(url, callback){
+        // adding the script tag to the head as suggested before
+        var head = document.getElementsByTagName('head')[0];
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = url;
+
+        // then bind the event to the callback function 
+        // there are several events for cross browser compatibility
+        script.onreadystatechange = callback;
+        script.onload = callback;
+
+        // fire the loading
+        head.appendChild(script);
+    }
+
+    var loaded_feature_importance = null;
+    var loaded_graph = {};
+    function loadGraph_action(bdName,graph_json,fi_json){
+        $("#filterByNodeValue").val(0);
+        feature_importances = {};
+        fi_json[bdName+"-grouped"]["scores_rf"].map(fi => {
+            feature_importances[fi[0]] = fi[1];
+        });
+
+        graphData = graph_json;
+        var nodesData = graphData.nodes;
+
+        // create an array with edges
+        var edgesData = graphData.edges;
+        
+        convertNodes(nodesData,edgesData);
+        nodes = new vis.DataSet(nodesData);
+        edges = new vis.DataSet(edgesData);
+        redrawAll();
+    }
+    
+    
     function loadGraph(bdName,graphJsonName){
         $(document).ready(function() {
-            $.getJSON("json/"+graphJsonName, function(graph_json) {
-                $.getJSON("json/feature_importances.json", function(fi_json) {
-                    $("#filterByNodeValue").val(0);
-                    feature_importances = {};
-                    fi_json[bdName+"-grouped"]["scores_rf"].map(fi => {
-                        feature_importances[fi[0]] = fi[1];
+            if(loaded_feature_importance == null){
+                $.getJSON("json/"+graphJsonName, function(graph_json) {
+                    $.getJSON("json/feature_importances.json", function(fi_json) {
+                        loaded_feature_importance = fi_json;
+                        loaded_graph[graphJsonName] = graph_json;
+                        loadGraph_action(bdName, graph_json, loaded_feature_importance);
                     });
-
-                    graphData = graph_json;
-                    var nodesData = graphData.nodes;
-
-                    // create an array with edges
-                    var edgesData = graphData.edges;
-                    
-                    convertNodes(nodesData,edgesData);
-                    nodes = new vis.DataSet(nodesData);
-                    edges = new vis.DataSet(edgesData);
-                    redrawAll();
-                });    
-            });
+                }).fail(function(){
+                    loadScript("js/database_service.js", function(){
+                        loaded_feature_importance = database_service["feature_importances.json"];
+                        graph_json = database_service[graphJsonName];
+                        loaded_graph[graphJsonName] = graph_json;
+                        loadGraph_action(bdName, graph_json, loaded_feature_importance);
+                    });
+                });
+            }
+            else{
+                if(graphJsonName in loaded_graph){
+                    loadGraph_action(bdName,loaded_graph[graphJsonName], loaded_feature_importance);
+                } else{
+                    $.getJSON("json/"+graphJsonName, function(graph_json) {
+                        loaded_graph[graphJsonName] = graph_json;
+                        loadGraph_action(bdName, graph_json, loaded_feature_importance);
+                    }).fail(function(){
+                        if(database_service == null){
+                            loadScript("js/database_service.js", function(){
+                                graph_json = database_service[graphJsonName];
+                                loaded_graph[graphJsonName] = graph_json;
+                                loadGraph_action(bdName, graph_json, loaded_feature_importance);
+                            });
+                        }
+                        else{
+                            graph_json = database_service[graphJsonName];
+                            loaded_graph[graphJsonName] = graph_json;
+                            loadGraph_action(bdName, graph_json, loaded_feature_importance);
+                        }
+                    });
+                }
+            }
+            
         });
     }
 
@@ -688,9 +749,9 @@
       var step = 80;
       nodes.push({id: 1000, x: x, y: y, label: 'UASB1', group: 'UASB1', value: 1, fixed: true, physics:false});
       nodes.push({id: 1001, x: x+ step    , y: y, label: 'UASB2', group: 'UASB2', value: 1, fixed: true,  physics:false});
-      nodes.push({id: 1002, x: x+ 2 * step, y: y, label: 'CSRT1', group: 'CSRT1', value: 1, fixed: true,  physics:false});
-      nodes.push({id: 1003, x: x+ 3 * step, y: y, label: 'CSRT2', group: 'CSRT2', value: 1, fixed: true,  physics:false});
-      nodes.push({id: 1004, x: x+ 4 * step, y: y, label: 'CSRT3', group: 'CSRT3', value: 1, fixed: true,  physics:false});
+      nodes.push({id: 1002, x: x+ 2 * step, y: y, label: 'CSTR1', group: 'CSTR1', value: 1, fixed: true,  physics:false});
+      nodes.push({id: 1003, x: x+ 3 * step, y: y, label: 'CSTR2', group: 'CSTR2', value: 1, fixed: true,  physics:false});
+      nodes.push({id: 1004, x: x+ 4 * step, y: y, label: 'CSTR3', group: 'CSTR3', value: 1, fixed: true,  physics:false});
 
       // create a network
       var container = document.getElementById('mynetwork_legend');
@@ -729,19 +790,19 @@
                     border:"rgba(214, 39, 40, 0.8)"
                 }
             },
-            'CSRT1': {
+            'CSTR1': {
                 color: {
                     background:"white",
                     border:"rgba(255, 127, 14)"
                 }
             },
-            'CSRT2': {
+            'CSTR2': {
                 color: {
                     background:"white",
                     border:"rgba(44, 160, 44)"
                 }
             },
-            'CSRT3': {
+            'CSTR3': {
                 color: {
                     background:"white",
                     border:"rgba(148, 103, 189)"

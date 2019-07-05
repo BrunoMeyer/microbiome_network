@@ -62,9 +62,9 @@
                 <div class="container row text-center">
                     <p class="text-center col-6">
                         Select the classification type of samples.
-                        "Binary" represent the execution of algorithms considering only two classes (CSRT and UASB).
-                        "Groups" consider the subgroups UASB1, UASB2, CSRT1, CSRT2 and CSRT3.
-                        The others types consider differents attributes identifieds in each group.
+                        "Binary" represent the execution of algorithms considering only two classes (CSTR and UASB).
+                        "Groups" consider the subgroups UASB1, UASB2, CSTR1, CSTR2 and CSTR3.
+                        The others types consider different attributes identified in each group.
                     </p>
                     <p class="text-center col-6">
                         Select data origin
@@ -240,13 +240,37 @@
         });
         
      
-           
+        // Only firefox allow CORS when the request is a local file
+        // Then, a js file was created with all json content
+        var database_service = null;
+        function loadScript(url, callback){
+            // adding the script tag to the head as suggested before
+            var head = document.getElementsByTagName('head')[0];
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = url;
+
+            // then bind the event to the callback function 
+            // there are several events for cross browser compatibility
+            script.onreadystatechange = callback;
+            script.onload = callback;
+
+            // fire the loading
+            head.appendChild(script);
+        }
+
 
         $(document).ready(function() {
             $.getJSON("json/feature_importances.json", function(json) {
                 dataSet = json;
                 updateDB();
-            });    
+            }).fail(function(){
+                loadScript("js/database_service.js", function(){
+                    dataSet = database_service["feature_importances.json"];
+                    updateDB();
+                });
+            });
+            
         });
         
         function convertDataScores(data){
@@ -267,7 +291,7 @@
                 // data[i][2] = choosenDB["feature_names"][i];
                 
                 checked = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "btn-secundary" : "btn-primary";
-                var text = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "" : "Adicionar ao gráfico";
+                var text = (lastAxisX.db == choosenDB && lastAxisX.id == i) ? "" : "Add to the graph";
                 data[i].push("\
                     <label onClick=addAxisX("+i+",true) class='btn "+checked+"'>\
                         "+text+"\
@@ -275,7 +299,7 @@
                 );
 
                 var checked = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "btn-secundary" : "btn-primary";
-                text = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "" : "Adicionar ao gráfico";
+                text = (lastAxisY.db == choosenDB && lastAxisY.id == i) ? "" : "Add to the graph";
                 data[i].push("\
                     <label onClick=addAxisY("+i+",true) class='btn "+checked+"'>\
                         "+text+"\

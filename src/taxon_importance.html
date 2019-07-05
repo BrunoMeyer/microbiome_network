@@ -88,8 +88,8 @@
             <div class="row mx-auto d-flex p-2 text-center col-12">
                 <p class="text-center col-6">
                     Sample Type. This define the scores for each taxon.
-                    If "binary" was choosed, then the chart will show the scores relative discriminative capacity between "CSRT" and "UASB" for each taxon.
-                    If "grouped" was choosed, then the discriminative criteria will consider the groups: "UASB1", "UASB2", "CSRT1", "CSRT2" and "CSRT3"
+                    If "binary" was choosed, then the chart will show the scores relative discriminative capacity between "CSTR" and "UASB" for each taxon.
+                    If "grouped" was choosed, then the discriminative criteria will consider the groups: "UASB1", "UASB2", "CSTR1", "CSTR2" and "CSTR3"
                 </p>
                 <div class="text-center col-6">
                     <select class="form-control col-md-12" id="label_type">
@@ -387,11 +387,35 @@
             Plotly.newPlot('taxa_plot', data, layout, {showSendToCloud: true});
         }
 
+        // Only firefox allow CORS when the request is a local file
+        // Then, a js file was created with all json content
+        var database_service = null;
+        function loadScript(url, callback){
+            // adding the script tag to the head as suggested before
+            var head = document.getElementsByTagName('head')[0];
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.src = url;
+
+            // then bind the event to the callback function 
+            // there are several events for cross browser compatibility
+            script.onreadystatechange = callback;
+            script.onload = callback;
+
+            // fire the loading
+            head.appendChild(script);
+        }
+
         $(document).ready(function() {
             $.getJSON("json/feature_importances.json", function(json) {
                 dataSet = json;
                 create_taxa_plot();
-            });    
+            }).fail(function(){
+                loadScript("js/database_service.js", function(){
+                    dataSet = database_service["feature_importances.json"];
+                    create_taxa_plot();
+                });
+            });
         });
         
         $('select').on('change', function (e) {

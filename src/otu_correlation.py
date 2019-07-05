@@ -511,11 +511,11 @@ if __name__ == "__main__":
             return "rgba(31, 119, 180, 0.8)" # "blue"
         elif name_class == "UASB2":
             return "rgba(214, 39, 40, 0.8)" # "red"
-        elif name_class == "CSRT1":
+        elif name_class == "CSTR1":
             return "rgba(255, 127, 14)" # "orange"
-        elif name_class == "CSRT2":
+        elif name_class == "CSTR2":
             return "rgba(44, 160, 44)" # "green"
-        elif name_class == "CSRT3":
+        elif name_class == "CSTR3":
             return "rgba(148, 103, 189)" # "purple"
         
 

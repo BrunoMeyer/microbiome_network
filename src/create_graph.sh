@@ -50,3 +50,5 @@ echo "Computing correlations for Bacteria (5% most abundant) entries with spearm
 python3 otu_correlation.py --dtype all_relative --json_name bact_fill_spearman --label_type grouped --taxa_level 5 --abundance_limiar 0.05 --filter_by_taxa_level 0 --filter_by_taxa_name Bacteria --limiar_alpha $regression_limiar_alpha --score_type spearman
 echo "Computing correlations for Bacteria (5% most abundant) entries with kendall correlation..."
 python3 otu_correlation.py --dtype all_relative --json_name bact_fill_kendall --label_type grouped --taxa_level 5 --abundance_limiar 0.05 --filter_by_taxa_level 0 --filter_by_taxa_name Bacteria --limiar_alpha $regression_limiar_alpha --score_type kendall
+
+python3 create_js_from_json.py
