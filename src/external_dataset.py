@@ -7,6 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from collections import defaultdict
 
+import json
 
 class DataSet():
     data = []
@@ -56,7 +57,7 @@ def load_label_description():
         values = {x:np.mean(values[x]) for x in values}
 
         for group in values:
-            label_description[group] += value_type+'(Média): '+str(values[group])+"<br>"
+            label_description[group] += value_type+'(Average): '+str(values[group])+"<br>"
     
     return dict(label_description)
 
@@ -163,6 +164,59 @@ def biogas_type_to_class_binary():
         "EV3-9": "UASB"
     }
 
+
+def load_feature_importances(db_name):
+    with open("json/feature_importances.json", "r") as f:
+        feature_importances_json = json.load(f)
+    return feature_importances_json[db_name]["scores_rf"]
+
+
+
+
+def load_age_database():
+    header, dataset_data = read_csv("data_sample/gene_labelled_data.csv")
+    
+    idx = np.argwhere(np.all(dataset_data[..., :] == 0, axis=0))
+    dataset_data = np.delete(dataset_data, idx, axis=1)
+    idx = idx.reshape((1,-1))[0]
+    header = np.delete(np.array(header),idx)
+    
+    idx = np.argwhere(np.all(dataset_data[..., :] == 0.0, axis=0))
+    dataset_data = np.delete(dataset_data, idx, axis=1)
+    idx = idx.reshape((1,-1))[0]
+    header = np.delete(np.array(header),idx)
+    
+    # dataset_data = dataset_data[:,:50]
+    # header = header[:50]
+
+    ret = DataSet()
+    ret.data = dataset_data[:,3:]
+
+    
+    raw_target = dataset_data[:,1]
+    interval_val = 10
+    target = np.array(raw_target, dtype=np.object)
+    for i in range(0,max(target), interval_val):
+        new_class_name = "Age between {} and {}".format(i,i+interval_val)
+        target[(raw_target>i) & (raw_target <= i+interval_val)] = new_class_name
+    
+    ret.label_encoder = LabelEncoder()
+    target = ret.label_encoder.fit_transform(target)
+    ret.target = target
+    ret.name = "Age"
+    ret.feature_names = np.array(header[3:])
+    # target = []
+    # target_levels = []
+    # target_values = []
+    # target_names = []
+    # feature_names = []
+    # label_encoder = None
+    # label_description = {}
+    # all_target_values = []
+    # taxa_levels_hierarchy = None
+    # name = None
+
+    return ret
 
 #Biogas
 def load_biogas(data_type="all_relative", label_type="grouped", label_value='name',

@@ -119,6 +119,9 @@
 
 
                     <div class="col-6 btn-group btn-group-toggle list-group" data-toggle="buttons">
+                        <label onClick="changeDB_data_type('Age')" class="btn list-group-item list-group-item-action flex-column align-items-start">
+                            <input type="radio" name="db_data_type" id="option3" autocomplete="off"> Age dataset
+                        </label>
                         <!-- <label onClick="changeDB_data_type('Bacteria')" class="btn list-group-item list-group-item-action flex-column align-items-start active">
                             <input type="radio" name="db_data_type" id="option1" autocomplete="off" checked> Bacteria
                         </label>
@@ -331,12 +334,12 @@
 
         function updateDB(){
             var name = data_type;
-            if(class_type == "binary"){
-                name+="-binary"
-            }
-            else{
-                name+="-grouped"
-            }
+            // if(class_type == "binary"){
+            //     name+="-binary"
+            // }
+            // else{
+            //     name+="-grouped"
+            // }
 
             choosenDB = dataSet[name];
             

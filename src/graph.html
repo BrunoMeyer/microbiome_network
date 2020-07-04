@@ -161,9 +161,12 @@
                 </div>
                 <div class="form-group col-md-8">
                     <select class="form-control col-md-12">
-                        <option onChangeOption="loadGraph('Relative_taxa5','graphData_all.json')" selected value=0>
-                            (All) Correlations identified by linear regression
+                        <option onChangeOption="loadGraph('Age','graphData_Age.json')" selected value=0>
+                            (Age) Correlations identified by linear Spearman
                         </option>
+                        <!-- <option onChangeOption="loadGraph('Relative_taxa5','graphData_all.json')" selected value=0>
+                            (All) Correlations identified by linear regression
+                        </option> -->
                         <!-- <option onChangeOption="loadGraph('Relative_taxa5','graphData_all_sparcc.json')" value=1>
                             (All) Correlations identified by SparCC and co-occurrence matrix
                         </option> -->
@@ -642,13 +645,19 @@
     var loaded_feature_importance = null;
     var loaded_graph = {};
     function loadGraph_action(bdName,graph_json,fi_json){
+
         $("#filterByNodeValue").val(0);
         feature_importances = {};
-        fi_json[bdName+"-grouped"]["scores_rf"].map(fi => {
+        // fi_json[bdName+"-grouped"]["scores_rf"].map(fi => {
+        //     feature_importances[fi[0]] = fi[1];
+        // });
+        fi_json[bdName]["scores_rf"].map(fi => {
             feature_importances[fi[0]] = fi[1];
         });
 
         graphData = graph_json;
+        draw();
+        
         var nodesData = graphData.nodes;
 
         // create an array with edges
@@ -715,7 +724,8 @@
     
 
     // loadGraph("Relative_taxa5","graphData_arch_spearman.json");
-    loadGraph("Relative_taxa5","graphData_all.json");
+    // loadGraph("Relative_taxa5","graphData_all.json");
+    loadGraph('Age','graphData_Age.json')
 
 
     var nodes = null;
@@ -746,12 +756,26 @@
       var mynetwork = document.getElementById('mynetwork_legend');
       var x = - mynetwork.clientWidth / 2 +40;
       var y = - mynetwork.clientHeight / 2 +20;
-      var step = 80;
-      nodes.push({id: 1000, x: x, y: y, label: 'UASB1', group: 'UASB1', value: 1, fixed: true, physics:false});
-      nodes.push({id: 1001, x: x+ step    , y: y, label: 'UASB2', group: 'UASB2', value: 1, fixed: true,  physics:false});
-      nodes.push({id: 1002, x: x+ 2 * step, y: y, label: 'CSTR1', group: 'CSTR1', value: 1, fixed: true,  physics:false});
-      nodes.push({id: 1003, x: x+ 3 * step, y: y, label: 'CSTR2', group: 'CSTR2', value: 1, fixed: true,  physics:false});
-      nodes.push({id: 1004, x: x+ 4 * step, y: y, label: 'CSTR3', group: 'CSTR3', value: 1, fixed: true,  physics:false});
+      var step = mynetwork.clientWidth/10;
+
+      var border_legend = graphData["border_legend"];
+      var groups_values = {};
+
+      for(var i in border_legend){
+        nodes.push({id: "legend_"+i, x: x+ i*step, y: y,
+                    label: border_legend[i][0], group: border_legend[i][0],
+                    value: 1, fixed: true, physics:false});
+        groups_values[border_legend[i][0]] = { // class name
+          color: {
+            background:"white",
+            border: border_legend[i][1] //border color
+          }
+        }
+      }
+    //   nodes.push({id: 1000, x: x,           y: y, label: 'UASB1', group: 'UASB1', value: 1, fixed: true, physics:false});
+    //   nodes.push({id: 1001, x: x+     step, y: y, label: 'UASB2', group: 'UASB2', value: 1, fixed: true, physics:false});
+    //   nodes.push({id: 1003, x: x+ 3 * step, y: y, label: 'CSTR2', group: 'CSTR2', value: 1, fixed: true, physics:false});
+    //   nodes.push({id: 1004, x: x+ 4 * step, y: y, label: 'CSTR3', group: 'CSTR3', value: 1, fixed: true, physics:false});
 
       // create a network
       var container = document.getElementById('mynetwork_legend');
@@ -777,38 +801,39 @@
           barnesHut:{gravitationalConstant:-30000},
           stabilization: {iterations:2500}
         },
-        groups: {
-            'UASB1': {
-                color: {
-                    background:"white",
-                    border:"rgba(31, 119, 180, 0.8)"
-                }
-            },
-            'UASB2': {
-                color: {
-                    background:"white",
-                    border:"rgba(214, 39, 40, 0.8)"
-                }
-            },
-            'CSTR1': {
-                color: {
-                    background:"white",
-                    border:"rgba(255, 127, 14)"
-                }
-            },
-            'CSTR2': {
-                color: {
-                    background:"white",
-                    border:"rgba(44, 160, 44)"
-                }
-            },
-            'CSTR3': {
-                color: {
-                    background:"white",
-                    border:"rgba(148, 103, 189)"
-                }
-            },
-        },
+        groups: groups_values,
+            //{
+            // 'UASB1': {
+            //     color: {
+            //         background:"white",
+            //         border:"rgba(31, 119, 180, 0.8)"
+            //     }
+            // },
+            // 'UASB2': {
+            //     color: {
+            //         background:"white",
+            //         border:"rgba(214, 39, 40, 0.8)"
+            //     }
+            // },
+            // 'CSTR1': {
+            //     color: {
+            //         background:"white",
+            //         border:"rgba(255, 127, 14)"
+            //     }
+            // },
+            // 'CSTR2': {
+            //     color: {
+            //         background:"white",
+            //         border:"rgba(44, 160, 44)"
+            //     }
+            // },
+            // 'CSTR3': {
+            //     color: {
+            //         background:"white",
+            //         border:"rgba(148, 103, 189)"
+            //     }
+            // },
+        // },
         interaction: {
             zoomView:false,
         },
@@ -816,7 +841,7 @@
       network = new vis.Network(container, data, options);
       network.disableEditMode();
     }
-    draw();
+    
     
 </script>
 </html>
