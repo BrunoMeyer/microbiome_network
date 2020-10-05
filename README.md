@@ -3,13 +3,14 @@
 ## About the project
 This project is a part of development executed for the paper [Microbial communities network analysis of anaerobic reactors fed with bovine and swine slurry](https://www.sciencedirect.com/science/article/pii/S0048969720338365?casa_token=PcVBqDpuUCEAAAAA:cbPP1EZVfoLxi5-nEJDBI-ktJ9ggLAbzqEAh9Yc5rxRsyZFSe1c3bgnhS7bzN1R_cyXXJOKRzfg).
 
-## Cite the project
 ![graph.html page_1](doc/img/graph_html_page_1.png)
 ![graph.html page_2](doc/img/graph_html_page_2.png)
 ![taxon_importance.html page](doc/img/taxon_importance_html_page.png)
 ![scores.html page](doc/img/scores_html_page.png)
 
 
+
+## Cite the project
 ```bibtex
 @article{vendruscolo2020microbial,
   title={Microbial communities network analysis of anaerobic reactors fed with bovine and swine slurry},
